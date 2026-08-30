@@ -39,7 +39,7 @@
 
 - **Zero native dependencies**: Built entirely on Python's standard library `sqlite3` and the official `mcp` SDK. No native C++ compiler toolchain, `node-gyp`, or binary addon installations required.
 - **Sub-20ms CLI cold start**: Lazy module imports and PEP 562 dynamic resolution deliver **6.8ms – 13.1ms** startup latency (101x – 193x faster), eliminating CLI invocation lag across agent workflows.
-- **Prompt caching prefix invariance**: Dynamic discovery latency is isolated to schema footers, achieving **97.01% – 98.92% prefix stability** and **>90% prompt cache hit rates** on Claude 3.5 Sonnet and GPT-4o.
+- **Prompt caching prefix invariance**: Dynamic discovery latency is isolated to schema footers, achieving **97.01% – 98.92% prefix stability** to maximize prompt cache retention across modern LLMs and agent toolchains.
 - **O(1) constant-time schema discovery**: Inspects table definitions, foreign keys, indexes, and estimated row counts in sub-millisecond time using `sqlite_stat1` and B-Tree rightmost leaf probing without running locking `SELECT COUNT(*)` scans.
 - **Dynamic virtual and FTS5 shadow table filtering**: Automatically detects FTS3/4/5 and RTree virtual tables and cleanly suppresses internal shadow tables (`*_data`, `*_idx`, `*_content`, `*_docsize`, `*_config`), while preserving genuine user tables (`user_data`, `site_config`, `post_content`).
 - **Dynamic extension loading with sandbox lockdown**: Load extensions such as `sqlite-vec` via CLI `--extension` with automatic sandbox lockdown (`conn.enable_load_extension(False)` in `finally`) to prevent SQL injection RCE.
@@ -234,12 +234,12 @@ Tested against the standard Node.js implementation (`mcp-sqlite-server` using `b
 
 ### Prompt caching optimization
 
-Most MCP servers output dynamic execution timers or timestamps in the header of their schema response. Because LLM prompt caching (Anthropic Claude Prompt Caching, OpenAI Prefix Caching) matches exact token prefixes from the start of the message, variable header lines invalidate cache entries on every invocation.
+Most MCP servers output dynamic execution timers or timestamps in the header of their schema response. Because modern LLM prompt caching mechanisms match exact token prefixes from the start of the message, variable header lines invalidate cache entries on every invocation.
 
 `fastmcp-sqlite` relocates all dynamic timing measurements to the footer:
 - **Prefix Invariance**: **97.01% – 98.92%** deterministic prefix stability across successive calls.
-- **Prompt Cache Hit Rate**: **>90%** on Claude 3.5 Sonnet and GPT-4o.
-- **Cost Reduction**: Substantially lowers input token costs for long-running agent workflows.
+- **Prompt Cache Retention**: Maximizes KV-cache reuse by keeping 100% of schema table and column definitions byte-invariant.
+- **Cost and Latency Reduction**: Eliminates redundant prefill compute and reduces input token costs for long-running agent workflows.
 
 ### Token consumption comparison
 
