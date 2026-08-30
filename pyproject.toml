@@ -1,0 +1,64 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fastmcp-sqlite"
+version = "1.0.0"
+description = "Production-grade, token-optimized FastMCP SQLite Server with sub-millisecond O(1) schema discovery, opcode execution watchdog, and fuzzy self-healing."
+readme = "README.md"
+authors = [
+    { name = "kenb38291-tech", email = "322792256+kenb38291-tech@users.noreply.github.com" }
+]
+license = { text = "MIT" }
+requires-python = ">=3.10"
+keywords = [
+    "mcp",
+    "fastmcp",
+    "sqlite",
+    "ai-agent",
+    "llm",
+    "database",
+    "claude",
+    "cursor",
+    "antigravity",
+    "windsurf",
+    "cline"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Database",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "mcp>=1.0.0,<2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+]
+
+[project.scripts]
+fastmcp-sqlite = "fastmcp_sqlite.cli:main"
+agy-sqlite = "fastmcp_sqlite.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/kenb38291-tech/fastmcp-sqlite"
+Repository = "https://github.com/kenb38291-tech/fastmcp-sqlite"
+Issues = "https://github.com/kenb38291-tech/fastmcp-sqlite/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fastmcp_sqlite"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

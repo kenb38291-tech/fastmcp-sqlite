@@ -1,0 +1,29 @@
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      db:
+        type: string
+        description: Absolute path to the SQLite database file (.db, .sqlite, .sqlite3).
+      readOnly:
+        type: boolean
+        description: Enable strict read-only mode to block mutating SQL queries.
+        default: true
+      maxRows:
+        type: integer
+        description: Maximum rows returned per query.
+        default: 100
+      maxBytes:
+        type: integer
+        description: Maximum response payload size in bytes.
+        default: 24576
+      cellMaxChars:
+        type: integer
+        description: Maximum characters per cell before truncation.
+        default: 200
+  commandLine:
+    - uvx
+    - fastmcp-sqlite
+    - --db
+    - "{{db}}"
