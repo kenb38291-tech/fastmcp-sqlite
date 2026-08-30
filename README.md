@@ -1,11 +1,5 @@
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kenb38291-tech/fastmcp-sqlite/main/assets/banner-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kenb38291-tech/fastmcp-sqlite/main/assets/banner-light.svg">
-  <img alt="fastmcp-sqlite Banner" src="https://raw.githubusercontent.com/kenb38291-tech/fastmcp-sqlite/main/assets/banner-dark.svg" width="100%">
-</picture>
-
 # fastmcp-sqlite
 
 **The high-performance, token-efficient SQLite Model Context Protocol server for AI coding agents.**  
