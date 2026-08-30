@@ -62,6 +62,3 @@ venv.bak/
 *.db-wal
 *.db-shm
 
-# Internal design drafts and artwork assets
-assets/
-
