@@ -36,6 +36,7 @@ class SQLiteEngine:
         cell_max_chars: int = 200,
         opcode_limit: int = 1_000_000,
         timeout: float = 5.0,
+        extensions: Optional[List[str]] = None,
     ) -> None:
         """Initialize the SQLite engine.
 
@@ -47,6 +48,7 @@ class SQLiteEngine:
             cell_max_chars: Maximum characters per cell before truncation (default: 200).
             opcode_limit: SQLite opcode instruction limit for runaway query watchdog.
             timeout: Busy timeout in seconds for lock contention.
+            extensions: Optional list of paths to loadable SQLite extension libraries.
         """
         self.default_db = (
             os.path.abspath(default_db)
@@ -59,6 +61,7 @@ class SQLiteEngine:
         self.cell_max_chars = cell_max_chars
         self.opcode_limit = opcode_limit
         self.timeout = timeout
+        self.extensions = list(extensions) if extensions else []
 
     def resolve_db_path(self, db: Optional[str] = None) -> str:
         """Resolve database path from argument or default configured path.
@@ -144,6 +147,19 @@ class SQLiteEngine:
             return 0
 
         conn.set_progress_handler(progress_watchdog, 10000)
+
+        # Dynamic Extension Loading with Sandbox Lockdown
+        if self.extensions:
+            try:
+                conn.enable_load_extension(True)
+                for ext in self.extensions:
+                    conn.load_extension(ext)
+            finally:
+                try:
+                    conn.enable_load_extension(False)
+                except (AttributeError, sqlite3.OperationalError):
+                    pass
+
         return conn
 
     def get_estimated_row_count(
@@ -235,7 +251,24 @@ class SQLiteEngine:
                 ORDER BY type, name
             """
             )
-            items = cursor.fetchall()
+            raw_items = cursor.fetchall()
+
+            # Dynamically identify shadow tables created by virtual tables (e.g. FTS3/4/5, RTree)
+            virtual_tables = {
+                item["name"]
+                for item in raw_items
+                if item["sql"] and "USING " in item["sql"].upper()
+            }
+            shadow_suffixes = (
+                "_data", "_idx", "_content", "_docsize", "_config",
+                "_segments", "_segdir", "_stat",
+            )
+            shadow_names = {
+                f"{vt}{sfx}"
+                for vt in virtual_tables
+                for sfx in shadow_suffixes
+            }
+            items = [item for item in raw_items if item["name"] not in shadow_names]
 
             tables_summary = []
             tables_detail = []
@@ -322,8 +355,7 @@ class SQLiteEngine:
                 f"# SQLite Schema Overview: `{os.path.basename(db_path)}`",
                 f"- **Path:** `{db_path}`",
                 f"- **Size:** {file_size_mb:.2f} MB ({file_size_bytes:,} bytes)",
-                f"- **Tables & Views Count:** {len(items)}",
-                f"- **Discovery Latency:** {elapsed_ms:.2f} ms (O(1) non-blocking scan)\n",
+                f"- **Tables & Views Count:** {len(items)}\n",
                 "## Tables Summary",
                 "| Table Name | Type | Columns | Est. Rows | Primary Key |",
                 "| :--- | :--- | :---: | :---: | :--- |",
@@ -335,6 +367,9 @@ class SQLiteEngine:
 
             lines.append("\n## Detailed Table Definitions")
             lines.append("\n\n".join(tables_detail))
+            lines.append(
+                f"\n*Discovery Latency: {elapsed_ms:.2f} ms (O(1) non-blocking scan)*"
+            )
             return "\n".join(lines)
         finally:
             conn.close()
@@ -638,7 +673,7 @@ class SQLiteEngine:
             err_msg = str(oe)
             hint = get_fuzzy_schema_hint(conn, err_msg, sql)
             if hint:
-                return f"SQLite OperationalError: {err_msg}\n👉 Suggestion: {hint}"
+                return f"SQLite OperationalError: {err_msg}\nSuggestion: {hint}"
             return f"SQLite OperationalError: {err_msg}"
         except sqlite3.ProgrammingError as pe:
             if not is_readonly:
@@ -711,7 +746,7 @@ class SQLiteEngine:
             err_msg = str(oe)
             hint = get_fuzzy_schema_hint(conn, err_msg, sql)
             if hint:
-                return f"Explain OperationalError: {err_msg}\n👉 Suggestion: {hint}"
+                return f"Explain OperationalError: {err_msg}\nSuggestion: {hint}"
             return f"Explain OperationalError: {err_msg}"
         except Exception as e:
             return f"Explain Error: {e}"

@@ -1,6 +1,7 @@
 """Tests for SQLiteEngine core discovery, resolution, and PRAGMA tuning."""
 
 import os
+import sqlite3
 import pytest
 from fastmcp_sqlite.engine import SQLiteEngine
 
@@ -99,3 +100,75 @@ def test_pragma_hygiene(sample_db):
     assert temp_store == 2  # 2 is MEMORY
 
     conn.close()
+
+
+def test_describe_schema_prompt_caching_footer(sample_db):
+    engine = SQLiteEngine(default_db=sample_db)
+    schema_doc = engine.describe_schema()
+
+    # Latency should NOT be in the header lines
+    first_lines = "\n".join(schema_doc.splitlines()[:5])
+    assert "Discovery Latency" not in first_lines
+
+    # Latency must be in the footer at the very bottom
+    assert "*Discovery Latency:" in schema_doc
+    assert schema_doc.strip().endswith("(O(1) non-blocking scan)*")
+
+    # Detailed table definitions must appear before the latency footer
+    detailed_idx = schema_doc.find("## Detailed Table Definitions")
+    latency_idx = schema_doc.find("*Discovery Latency:")
+    assert detailed_idx != -1
+    assert latency_idx > detailed_idx
+
+
+def test_fts5_shadow_table_exclusion(tmp_path):
+    db_file = tmp_path / "test_fts5.db"
+    conn = sqlite3.connect(str(db_file))
+    cur = conn.cursor()
+    cur.execute("CREATE VIRTUAL TABLE articles USING fts5(title, body);")
+    cur.execute(
+        "INSERT INTO articles (title, body) VALUES ('First Article', 'FastMCP SQLite search content');"
+    )
+    # User tables that have names ending in _data, _config, _content, etc.
+    cur.execute("CREATE TABLE user_data (id INTEGER PRIMARY KEY, info TEXT);")
+    cur.execute("CREATE TABLE site_config (key TEXT PRIMARY KEY, val TEXT);")
+    cur.execute("CREATE TABLE post_content (id INTEGER PRIMARY KEY, body TEXT);")
+    conn.commit()
+    conn.close()
+
+    engine = SQLiteEngine(default_db=str(db_file))
+    schema_doc = engine.describe_schema()
+
+    # Virtual table is included
+    assert "articles" in schema_doc
+    # Shadow tables of virtual table articles are excluded
+    assert "articles_data" not in schema_doc
+    assert "articles_idx" not in schema_doc
+    assert "articles_content" not in schema_doc
+    assert "articles_docsize" not in schema_doc
+    assert "articles_config" not in schema_doc
+
+    # Legitimate user tables are preserved!
+    assert "user_data" in schema_doc
+    assert "site_config" in schema_doc
+    assert "post_content" in schema_doc
+
+
+def test_extension_loading_and_sandbox_lockdown(sample_db):
+    # Non-existent extension should raise an exception during connection
+    engine_with_ext = SQLiteEngine(
+        default_db=sample_db,
+        extensions=["non_existent_extension_xyz.so"],
+    )
+    with pytest.raises((sqlite3.OperationalError, FileNotFoundError, Exception)):
+        engine_with_ext.get_connection(sample_db)
+
+    # Valid engine without extensions should lock sandbox
+    engine = SQLiteEngine(default_db=sample_db)
+    conn = engine.get_connection(sample_db)
+    try:
+        # After get_connection, load_extension should fail because enable_load_extension is False
+        with pytest.raises((sqlite3.OperationalError, AttributeError)):
+            conn.load_extension("malicious_extension.so")
+    finally:
+        conn.close()
