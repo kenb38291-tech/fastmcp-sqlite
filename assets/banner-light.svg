@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg-light" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="50%" stop-color="#f1f5f9"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="primary-grad-light" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="50%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="badge-grad-light" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="360" rx="16" fill="url(#bg-light)"/>
+  <rect width="1200" height="360" rx="16" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+
+  <!-- Subtle Grid lines -->
+  <g stroke="#cbd5e1" stroke-width="1" stroke-opacity="0.4">
+    <line x1="0" y1="90" x2="1200" y2="90"/>
+    <line x1="0" y1="180" x2="1200" y2="180"/>
+    <line x1="0" y1="270" x2="1200" y2="270"/>
+    <line x1="300" y1="0" x2="300" y2="360"/>
+    <line x1="600" y1="0" x2="600" y2="360"/>
+    <line x1="900" y1="0" x2="900" y2="360"/>
+  </g>
+
+  <!-- Logo / Database Icon -->
+  <g transform="translate(100, 110)">
+    <rect x="0" y="0" width="140" height="140" rx="28" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+    <!-- Cylinder Top -->
+    <ellipse cx="70" cy="45" rx="42" ry="14" fill="#0284c7" fill-opacity="0.15" stroke="#0284c7" stroke-width="3"/>
+    <!-- Cylinder Middle Segment -->
+    <path d="M 28 45 V 75 C 28 83, 112 83, 112 75 V 45" fill="none" stroke="#4f46e5" stroke-width="3"/>
+    <!-- Cylinder Bottom Segment -->
+    <path d="M 28 75 V 102 C 28 110, 112 110, 112 102 V 75" fill="none" stroke="#7c3aed" stroke-width="3"/>
+    <!-- Bolt / Speed symbol -->
+    <path d="M 72 48 L 56 78 L 70 78 L 66 98 L 84 68 L 70 68 Z" fill="#eab308"/>
+  </g>
+
+  <!-- Main Title & Subtitles -->
+  <g transform="translate(280, 125)">
+    <text x="0" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="52" font-weight="900" fill="url(#primary-grad-light)" letter-spacing="-1">fastmcp-sqlite</text>
+    <text x="0" y="74" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="20" font-weight="400" fill="#475569">The High-Performance, Token-Efficient SQLite MCP Server for AI Agents</text>
+  </g>
+
+  <!-- Feature Badges on Banner -->
+  <g transform="translate(280, 230)">
+    <!-- Badge 1: Zero Native Deps -->
+    <g transform="translate(0, 0)">
+      <rect width="180" height="42" rx="8" fill="url(#badge-grad-light)" stroke="#0284c7" stroke-width="1.2"/>
+      <circle cx="22" cy="21" r="5" fill="#0284c7"/>
+      <text x="36" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#0f172a">Zero Native Addons</text>
+    </g>
+
+    <!-- Badge 2: O(1) Schema -->
+    <g transform="translate(195, 0)">
+      <rect width="175" height="42" rx="8" fill="url(#badge-grad-light)" stroke="#4f46e5" stroke-width="1.2"/>
+      <circle cx="22" cy="21" r="5" fill="#4f46e5"/>
+      <text x="36" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#0f172a">O(1) Discovery (0.8ms)</text>
+    </g>
+
+    <!-- Badge 3: 3.6ms Watchdog -->
+    <g transform="translate(385, 0)">
+      <rect width="180" height="42" rx="8" fill="url(#badge-grad-light)" stroke="#e11d48" stroke-width="1.2"/>
+      <circle cx="22" cy="21" r="5" fill="#e11d48"/>
+      <text x="36" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#0f172a">3.6ms CTE Watchdog</text>
+    </g>
+
+    <!-- Badge 4: Token Savings -->
+    <g transform="translate(580, 0)">
+      <rect width="175" height="42" rx="8" fill="url(#badge-grad-light)" stroke="#059669" stroke-width="1.2"/>
+      <circle cx="22" cy="21" r="5" fill="#059669"/>
+      <text x="36" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#0f172a">54.9% Token Savings</text>
+    </g>
+  </g>
+</svg>
