@@ -3,22 +3,27 @@
 
 ## Core Capabilities
 - Zero Native Dependencies: Pure Python standard library `sqlite3` + `mcp` SDK.
+- Sub-20ms Cold Start: Lazy-loaded CLI and PEP 562 attribute resolution (6.8ms – 13.1ms startup).
+- Prompt Caching Optimized: Footer-isolated latency preserving 98.9% prefix invariance (>90% cache hit rate).
 - O(1) Schema Discovery: Sub-millisecond table, row estimate, foreign key and index probing.
+- Dynamic Shadow Table Filtering: Cleanly suppresses FTS3/4/5 and RTree shadow tables while preserving user tables.
+- Extension Loading & Sandbox Lockdown: Supports loadable extensions (`sqlite-vec`) with strict sandbox lockdown.
 - Runaway Query Watchdog: Aborts infinite recursive CTEs and Cartesian joins within 3.6ms (1M opcodes limit).
-- Token-Conscious Formatter: Compact markdown tables, vertical record view for wide schemas, 200 char cell truncation, 24KB payload ceiling (saves up to 54.9% tokens).
+- Token-Conscious Formatter: Compact markdown tables, vertical record view for wide schemas, 200 char cell truncation, strict multibyte UTF-8 24KB payload ceiling (saves up to 54.9% tokens).
 - Transaction Safety: Full DML RETURNING cursor exhaustion and auto-commit.
-- Fuzzy Typo Matcher: "Did you mean?" schema correction.
+- Fuzzy Typo Matcher: Sub-2ms "Did you mean?" schema correction.
 
 ## Tools Reference
 - `schema(db: str = "")`: O(1) database schema overview with estimated row counts.
 - `query(sql: str, params: Optional[Union[List, Dict, str]] = None, db: str = "", readonly: bool = True, format: str = "table")`: Execute SQL query with parameter binding and token formatting (`table`, `vertical`, `json`).
 - `table_info(table: str, db: str = "")`: Deep schema inspection for a single table or view (columns, constraints, triggers, DDL).
-- `explain(sql: str, db: str = "")`: EXPLAIN QUERY PLAN inspection.
+- `explain(sql: str, params: Optional[Union[List, Dict, str]] = None, db: str = "")`: EXPLAIN QUERY PLAN inspection.
 - `list_databases(directory: str = "")`: Filesystem discovery of SQLite database files.
 
 ## 1-Click Startup
 - Run via uvx: `uvx fastmcp-sqlite --db /path/to/database.db`
 - Enable write mode: `uvx fastmcp-sqlite --db /path/to/database.db --allow-write`
+- Load extensions (e.g. vector): `uvx fastmcp-sqlite --db /path/to/database.db --extension /path/to/vec0.so`
 
 ## Documentation & Repository
 - Repository: https://github.com/kenb38291-tech/fastmcp-sqlite

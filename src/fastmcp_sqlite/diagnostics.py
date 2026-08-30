@@ -70,7 +70,7 @@ def get_fuzzy_schema_hint(
             # Targeted PRAGMA probing: identify tables referenced in the query SQL
             sql_tokens = set(re.findall(r"\b[A-Za-z0-9_]+\b", sql))
             queried_tables = [t for t in all_tables if t in sql_tokens]
-            candidate_tables = queried_tables if queried_tables else all_tables[:10]
+            candidate_tables = queried_tables if queried_tables else all_tables
 
             col_map: Dict[str, str] = {}
             for t in candidate_tables:

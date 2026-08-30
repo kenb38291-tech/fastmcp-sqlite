@@ -19,20 +19,22 @@ The server exposes five tools over standard IO JSON-RPC:
 fastmcp-sqlite/
 ├── src/
 │   └── fastmcp_sqlite/
-│       ├── __init__.py         # Package exports and semantic version (__version__ = "1.0.0")
+│       ├── __init__.py         # Package exports, version, and PEP 562 lazy attribute loading
 │       ├── __main__.py         # Module runner for python -m fastmcp_sqlite
-│       ├── cli.py              # CLI argument parser and Windows UTF-8 stdio setup
+│       ├── cli.py              # CLI argument parser, lazy server init, Windows UTF-8 stdio
 │       ├── engine.py           # Core SQLiteEngine, connection tuning, watchdog, execution
-│       ├── formatters.py       # Markdown tables, vertical record views, JSON, truncation
+│       ├── formatters.py       # Markdown tables, vertical record views, JSON, UTF-8 byte guards
 │       ├── diagnostics.py      # Fuzzy schema typo matching ("Did you mean?")
+│       ├── py.typed            # PEP 561 typing marker
 │       └── server.py           # FastMCP server factory and tool registrations
 ├── tests/
 │   ├── conftest.py             # Temporary test database fixtures
+│   ├── test_cli.py             # CLI argument parsing, flags, and lazy import tests
 │   ├── test_concurrency.py     # Concurrent WAL readers and writer tests
 │   ├── test_dml.py             # DML RETURNING ACID commit and parameter binding tests
-│   ├── test_engine.py          # O(1) discovery, path resolution, PRAGMA tests
+│   ├── test_engine.py          # O(1) discovery, shadow table filtering, prompt caching footer
 │   ├── test_fuzzy.py           # Typo autocorrection suggestion tests
-│   ├── test_tokenomics.py      # Formatters, cell truncation, and 24KB ceiling tests
+│   ├── test_tokenomics.py      # Formatters, cell truncation, and multibyte UTF-8 byte cap tests
 │   └── test_watchdog.py        # Infinite CTE and Cartesian explosion abort tests
 ├── .github/
 │   └── workflows/
@@ -58,8 +60,11 @@ Every database connection created in `engine.py` must configure these settings i
 - `PRAGMA temp_store = MEMORY;` for memory-backed temporary tables.
 - `PRAGMA query_only = ON;` when running in read-only mode.
 
-### 2. O(1) Schema discovery
+### 2. O(1) Schema discovery, prompt caching, and shadow table filtering
 Never replace `get_estimated_row_count` with `SELECT COUNT(*)`. Full scans lock large databases and cause MCP connection timeouts. The engine must check `sqlite_stat1` first, skip views and `WITHOUT ROWID` tables, and probe `SELECT MAX(_rowid_)` to read the rightmost leaf page in constant time.
+Additionally:
+- Execution latency must remain strictly in the output footer (`*Discovery Latency: ...*`) to preserve prompt caching prefix invariance (>97% stability).
+- The engine must dynamically inspect virtual tables via `USING ` DDL and filter internal shadow tables (`*_data`, `*_idx`, `*_content`, `*_docsize`, `*_config`, `*_segments`, `*_segdir`, `*_stat`) by exact virtual table name mapping to avoid false positives on legitimate user tables like `user_data` or `site_config`.
 
 ### 3. Runaway query protection
 Do not remove the progress handler. Infinite recursive queries or Cartesian joins must be caught by `conn.set_progress_handler(progress_watchdog, 10000)`. If a query exceeds the configured opcode limit (default: 1,000,000 instructions), the watchdog returns 1 to interrupt SQLite execution. The engine catches the operational error and returns a clean abort message within 5ms.
@@ -70,14 +75,23 @@ When executing write statements containing RETURNING clauses (such as `INSERT IN
 ### 5. Parameter normalization
 The engine must accept positional lists, named dictionaries, and JSON-stringified payloads. Strip parameter prefixes (`:`, `$`, `@`) before passing dictionaries to SQLite. Serialize nested dictionaries and lists to JSON strings automatically.
 
-### 6. Token limits and truncation
+### 6. Token limits and multibyte UTF-8 truncation
 Formatters in `formatters.py` must enforce:
 - Cell character limit: Strings exceeding `cell_max_chars` (default: 200) are truncated with `…[truncated]`.
 - BLOB representation: Raw bytes are formatted as `<BLOB <length>B>`.
-- Payload byte ceiling: Output exceeding `max_bytes` (default: 24,576 bytes / 24KB) stops processing further rows and appends a limit notice.
+- Multibyte payload byte ceiling: Output exceeding `max_bytes` (default: 24,576 bytes / 24KB) stops processing further rows and appends a limit notice. Byte length must be counted using strict UTF-8 encoded bytes (`len(line.encode('utf-8'))`) to prevent context overruns on CJK or multibyte Unicode characters.
 
 ### 7. Dependency boundaries
 The package must remain lightweight. Do not add heavy third-party dependencies. The runtime requires only `mcp>=1.0.0` and Python's standard library (`sqlite3`, `json`, `difflib`, `re`, `argparse`, `os`, `sys`, `time`). Development dependencies are restricted to `pytest`.
+
+### 8. Sub-20ms CLI cold-start lazy import boundary
+`cli.py` and `__init__.py` must maintain a strict lazy import boundary. Never import `create_server`, `FastMCP`, or heavy submodules at module top level. All server initialization imports must reside inside `main()` after parsing CLI flags or in the PEP 562 `__getattr__` hook, ensuring `--help` and `--version` complete in under 20ms.
+
+### 9. Dynamic extension loading and sandbox lockdown
+When loading SQLite dynamic extension libraries (`.so`, `.dylib`, `.dll`), always wrap `conn.enable_load_extension(True)` inside a `try ... finally` block that executes `conn.enable_load_extension(False)`. This guarantees that user SQL queries cannot dynamically load arbitrary native libraries or execute code outside the permitted sandbox.
+
+### 10. Dynamic fuzzy typo self-healing
+The engine must perform schema diagnosis and fuzzy typo suggestion ("Did you mean: `users`?") on misspelled tables or columns in <2ms using targeted PRAGMA introspection without scanning full tables.
 
 ## Development and testing commands
 
@@ -90,6 +104,7 @@ python -m pytest -v
 Run a specific test module:
 
 ```bash
+python -m pytest tests/test_cli.py -v
 python -m pytest tests/test_engine.py -v
 python -m pytest tests/test_watchdog.py -v
 python -m pytest tests/test_dml.py -v

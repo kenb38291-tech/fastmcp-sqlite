@@ -19,6 +19,7 @@ def create_server(
     cell_max_chars: int = 200,
     opcode_limit: int = 1_000_000,
     timeout: float = 5.0,
+    extensions: Optional[List[str]] = None,
 ) -> FastMCP:
     """Create and configure FastMCP SQLite server with registered tools.
 
@@ -31,6 +32,7 @@ def create_server(
         cell_max_chars: Maximum characters per cell before truncation.
         opcode_limit: SQLite opcode instruction limit for runaway watchdog.
         timeout: Busy timeout in seconds for lock contention.
+        extensions: Optional list of paths to loadable SQLite extension libraries.
 
     Returns:
         Configured FastMCP server instance ready for stdio or SSE transport.
@@ -43,6 +45,7 @@ def create_server(
         cell_max_chars=cell_max_chars,
         opcode_limit=opcode_limit,
         timeout=timeout,
+        extensions=extensions,
     )
 
     mcp = FastMCP(server_name)

@@ -10,7 +10,6 @@ import sys
 from typing import Optional
 
 from . import __version__
-from .server import create_server
 
 
 def setup_utf8_io() -> None:
@@ -87,6 +86,13 @@ def main(argv: Optional[list[str]] = None) -> None:
         help="SQLite busy timeout in seconds (default: 5.0)",
     )
     parser.add_argument(
+        "--extension",
+        action="append",
+        type=str,
+        default=None,
+        help="Path to SQLite loadable extension shared library (.so, .dylib, .dll)",
+    )
+    parser.add_argument(
         "-v",
         "--version",
         action="version",
@@ -105,6 +111,9 @@ def main(argv: Optional[list[str]] = None) -> None:
         base = os.path.splitext(os.path.basename(db_target))[0]
         server_name = f"{base}-db"
 
+    # Lazy import create_server to guarantee sub-20ms cold-start for CLI help and version
+    from .server import create_server
+
     server = create_server(
         db_path=db_target,
         server_name=server_name,
@@ -114,6 +123,7 @@ def main(argv: Optional[list[str]] = None) -> None:
         cell_max_chars=args.cell_max_chars,
         opcode_limit=args.opcode_limit,
         timeout=args.timeout,
+        extensions=args.extension,
     )
 
     server.run(transport="stdio")

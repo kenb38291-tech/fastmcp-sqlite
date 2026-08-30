@@ -1,0 +1,244 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradients -->
+    <radialGradient id="bg-glow-main" cx="20%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#0e1a32"/>
+      <stop offset="45%" stop-color="#0b1120"/>
+      <stop offset="100%" stop-color="#05070d"/>
+    </radialGradient>
+    <radialGradient id="cyan-orb" cx="80%" cy="60%" r="50%">
+      <stop offset="0%" stop-color="#0284c7" stop-opacity="0.25"/>
+      <stop offset="60%" stop-color="#6366f1" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Typography Gradients -->
+    <linearGradient id="title-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+
+    <linearGradient id="pill-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.95"/>
+    </linearGradient>
+
+    <linearGradient id="border-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#818cf8" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#334155" stop-opacity="0.4"/>
+    </linearGradient>
+
+    <!-- Card Backgrounds -->
+    <linearGradient id="card-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#161f30" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#0d1522" stop-opacity="0.95"/>
+    </linearGradient>
+
+    <!-- Glow & Shadow Filters -->
+    <filter id="soft-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Base Canvas -->
+  <rect width="1600" height="900" fill="url(#bg-glow-main)"/>
+  <rect width="1600" height="900" fill="url(#cyan-orb)"/>
+
+  <!-- Subtle Cyber Isometric Grid Lines -->
+  <g stroke="#38bdf8" stroke-opacity="0.04" stroke-width="1.2">
+    <line x1="0" y1="150" x2="1600" y2="150"/>
+    <line x1="0" y1="300" x2="1600" y2="300"/>
+    <line x1="0" y1="450" x2="1600" y2="450"/>
+    <line x1="0" y1="600" x2="1600" y2="600"/>
+    <line x1="0" y1="750" x2="1600" y2="750"/>
+    <line x1="266" y1="0" x2="266" y2="900"/>
+    <line x1="533" y1="0" x2="533" y2="900"/>
+    <line x1="800" y1="0" x2="800" y2="900"/>
+    <line x1="1066" y1="0" x2="1066" y2="900"/>
+    <line x1="1333" y1="0" x2="1333" y2="900"/>
+  </g>
+
+  <!-- ======================================================== -->
+  <!-- Z-PATTERN TOP ROW (IDENTITY & PROTOCOL BADGES)            -->
+  <!-- ======================================================== -->
+
+  <!-- Top-Left: Brand Emblem & Wordmark -->
+  <g transform="translate(80, 70)">
+    <!-- Mini 3D SQLite Emblem -->
+    <g transform="translate(0, 0)">
+      <rect width="72" height="72" rx="18" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+      <ellipse cx="36" cy="24" rx="22" ry="7" fill="#38bdf8" fill-opacity="0.25" stroke="#38bdf8" stroke-width="1.8"/>
+      <path d="M 14 24 V 40 C 14 45, 58 45, 58 40 V 24" fill="none" stroke="#818cf8" stroke-width="1.8"/>
+      <path d="M 14 40 V 54 C 14 59, 58 59, 58 54 V 40" fill="none" stroke="#c084fc" stroke-width="1.8"/>
+      <path d="M 37 26 L 28 42 L 36 42 L 33 52 L 44 36 L 36 36 Z" fill="#fbbf24"/>
+    </g>
+
+    <!-- App Name & MCP Protocol Tag -->
+    <g transform="translate(90, 8)">
+      <text x="0" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif" font-size="34" font-weight="900" fill="url(#title-grad)" letter-spacing="-0.5">fastmcp-sqlite</text>
+      <text x="0" y="54" font-family="-apple-system, BlinkMacSystemFont, 'JetBrains Mono', monospace" font-size="13" font-weight="600" fill="#38bdf8" letter-spacing="2">OFFICIAL MODEL CONTEXT PROTOCOL · V1.0.0</text>
+    </g>
+  </g>
+
+  <!-- Top-Right: Telemetry Status Badges -->
+  <g transform="translate(1020, 75)">
+    <!-- Badge 1: Zero Native Compilers -->
+    <rect x="0" y="0" width="220" height="42" rx="10" fill="#161f30" stroke="#10b981" stroke-width="1.5"/>
+    <circle cx="20" cy="21" r="5" fill="#10b981" filter="url(#soft-glow)"/>
+    <text x="36" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="13" font-weight="700" fill="#34d399">ZERO NATIVE TOOLCHAIN</text>
+
+    <!-- Badge 2: Python 3.10-3.14 Standard Lib -->
+    <rect x="235" y="0" width="245" height="42" rx="10" fill="#161f30" stroke="#38bdf8" stroke-width="1.5"/>
+    <circle cx="255" cy="21" r="5" fill="#38bdf8" filter="url(#soft-glow)"/>
+    <text x="270" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="13" font-weight="700" fill="#7dd3fc">STDLIB SQLITE3 + FAST-MCP</text>
+  </g>
+
+  <!-- ======================================================== -->
+  <!-- HERO HEADLINE & VALUE PROPOSITION                        -->
+  <!-- ======================================================== -->
+  <g transform="translate(80, 195)">
+    <text x="0" y="50" font-family="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif" font-size="54" font-weight="900" fill="#f8fafc" letter-spacing="-1.2">
+      The High-Performance SQLite MCP Server
+    </text>
+    <text x="0" y="105" font-family="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif" font-size="54" font-weight="900" fill="url(#title-grad)" letter-spacing="-1.2">
+      Engineered for Autonomous AI Coding Agents
+    </text>
+    <text x="0" y="150" font-family="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif" font-size="20" font-weight="400" fill="#94a3b8">
+      Sub-millisecond schema discovery, runaway CTE watchdog guards, ACID transactional writes, and 54.9% token savings.
+    </text>
+  </g>
+
+  <!-- ======================================================== -->
+  <!-- LEFT COLUMN: 4 ARCHITECTURAL POWER PILLARS               -->
+  <!-- ======================================================== -->
+  <g transform="translate(80, 395)">
+    <!-- Card 1: O(1) Schema Discovery -->
+    <g transform="translate(0, 0)" filter="url(#card-shadow)">
+      <rect width="320" height="190" rx="16" fill="url(#card-grad)" stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.8"/>
+      <circle cx="36" cy="38" r="18" fill="#0284c7" fill-opacity="0.2"/>
+      <path d="M 30 38 L 42 38 M 36 32 L 36 44" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="64" y="44" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="17" font-weight="800" fill="#f8fafc">O(1) Discovery</text>
+      <text x="24" y="80" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="13" font-weight="400" fill="#94a3b8">
+        Constant-time B-Tree probing.
+      </text>
+      <text x="24" y="100" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="13" font-weight="400" fill="#94a3b8">
+        Zero locking full-table scans.
+      </text>
+      <rect x="24" y="130" width="130" height="28" rx="6" fill="#0c4a6e" fill-opacity="0.6"/>
+      <text x="34" y="149" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#38bdf8">LATENCY: 0.4ms</text>
+    </g>
+
+    <!-- Card 2: 3.6ms Watchdog -->
+    <g transform="translate(345, 0)" filter="url(#card-shadow)">
+      <rect width="320" height="190" rx="16" fill="url(#card-grad)" stroke="#f59e0b" stroke-width="1.5" stroke-opacity="0.8"/>
+      <circle cx="36" cy="38" r="18" fill="#b45309" fill-opacity="0.2"/>
+      <path d="M 36 28 L 44 44 L 28 44 Z" fill="none" stroke="#fbbf24" stroke-width="2"/>
+      <text x="64" y="44" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="17" font-weight="800" fill="#f8fafc">Query Watchdog</text>
+      <text x="24" y="80" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="13" font-weight="400" fill="#94a3b8">
+        Interrupts runaway recursive CTEs
+      </text>
+      <text x="24" y="100" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="13" font-weight="400" fill="#94a3b8">
+        and Cartesian explosions instantly.
+      </text>
+      <rect x="24" y="130" width="140" height="28" rx="6" fill="#78350f" fill-opacity="0.6"/>
+      <text x="34" y="149" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#fbbf24">CAP: 1M OPCODES</text>
+    </g>
+
+    <!-- Card 3: 24KB Token Ceiling -->
+    <g transform="translate(0, 215)" filter="url(#card-shadow)">
+      <rect width="320" height="190" rx="16" fill="url(#card-grad)" stroke="#a855f7" stroke-width="1.5" stroke-opacity="0.8"/>
+      <circle cx="36" cy="38" r="18" fill="#6b21a8" fill-opacity="0.2"/>
+      <rect x="28" y="30" width="16" height="16" rx="3" fill="none" stroke="#c084fc" stroke-width="2"/>
+      <text x="64" y="44" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="17" font-weight="800" fill="#f8fafc">Tokenomics Guard</text>
+      <text x="24" y="80" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="13" font-weight="400" fill="#94a3b8">
+        Strict 24KB ceiling + cell trunc.
+      </text>
+      <text x="24" y="100" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="13" font-weight="400" fill="#94a3b8">
+        Compact vertical/markdown views.
+      </text>
+      <rect x="24" y="130" width="130" height="28" rx="6" fill="#581c87" fill-opacity="0.6"/>
+      <text x="34" y="149" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#c084fc">-54.9% TOKENS</text>
+    </g>
+
+    <!-- Card 4: ACID DML Write Safety -->
+    <g transform="translate(345, 215)" filter="url(#card-shadow)">
+      <rect width="320" height="190" rx="16" fill="url(#card-grad)" stroke="#10b981" stroke-width="1.5" stroke-opacity="0.8"/>
+      <circle cx="36" cy="38" r="18" fill="#047857" fill-opacity="0.2"/>
+      <path d="M 30 38 L 35 43 L 43 32" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="64" y="44" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="17" font-weight="800" fill="#f8fafc">ACID Write Safety</text>
+      <text x="24" y="80" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="13" font-weight="400" fill="#94a3b8">
+        DML RETURNING support.
+      </text>
+      <text x="24" y="100" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="13" font-weight="400" fill="#94a3b8">
+        Locks auto-released on commit.
+      </text>
+      <rect x="24" y="130" width="140" height="28" rx="6" fill="#064e3b" fill-opacity="0.6"/>
+      <text x="34" y="149" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" fill="#34d399">WAL CONCURRENCY</text>
+    </g>
+  </g>
+
+  <!-- ======================================================== -->
+  <!-- RIGHT COLUMN: ILLUMINATED CYBER TERMINAL CTA (Z-END)     -->
+  <!-- ======================================================== -->
+  <g transform="translate(775, 395)" filter="url(#card-shadow)">
+    <!-- Terminal Shell -->
+    <rect width="745" height="405" rx="20" fill="#070a12" stroke="url(#border-grad)" stroke-width="2"/>
+
+    <!-- Terminal Header Bar -->
+    <rect width="745" height="46" rx="20" fill="#0f172a"/>
+    <rect y="30" width="745" height="16" fill="#0f172a"/>
+    <line x1="0" y1="46" x2="745" y2="46" stroke="#334155" stroke-width="1"/>
+
+    <!-- Window Dots -->
+    <circle cx="28" cy="23" r="6" fill="#ef4444"/>
+    <circle cx="48" cy="23" r="6" fill="#f59e0b"/>
+    <circle cx="68" cy="23" r="6" fill="#10b981"/>
+    
+    <text x="100" y="28" font-family="'JetBrains Mono', monospace" font-size="13" fill="#64748b">bash — fastmcp-sqlite live runner</text>
+
+    <!-- Copy CTA Chip on Top Right of Terminal -->
+    <g transform="translate(620, 10)">
+      <rect width="105" height="26" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1"/>
+      <text x="16" y="17" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="600" fill="#38bdf8">1-CLICK RUN</text>
+    </g>
+
+    <!-- Terminal Inner Content -->
+    <g transform="translate(32, 85)" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="15">
+      <!-- Line 1: Primary One-Click Launch Command -->
+      <text x="0" y="0" fill="#64748b"># 1. Run directly with uvx (Zero install):</text>
+      <text x="0" y="32" font-size="18" font-weight="700" fill="#f8fafc">
+        <tspan fill="#38bdf8">$</tspan> uvx fastmcp-sqlite --db app.db
+      </text>
+
+      <!-- Line 2: Response Stream Output -->
+      <g transform="translate(0, 75)" font-size="13">
+        <text x="0" y="0" fill="#34d399">✓ PRAGMA journal_mode = WAL [OK]</text>
+        <text x="0" y="24" fill="#34d399">✓ Watchdog active (cap=1,000,000 opcodes)</text>
+        <text x="0" y="48" fill="#34d399">✓ O(1) Schema Probe indexed 42 tables in 0.42ms</text>
+        <text x="0" y="72" fill="#38bdf8">★ FastMCP SQLite Server listening on stdio JSON-RPC</text>
+      </g>
+
+      <!-- Line 3: Multi-Agent Client Compatibility -->
+      <g transform="translate(0, 195)" font-size="12">
+        <text x="0" y="0" fill="#94a3b8" font-weight="600">COMPATIBLE AGENTS:</text>
+        <text x="0" y="24" fill="#64748b">Claude Desktop • Cursor • Antigravity • Windsurf • Cline • Codex CLI</text>
+      </g>
+
+      <!-- Line 4: Pulsing Prompt Cursor -->
+      <g transform="translate(0, 260)">
+        <text x="0" y="0" fill="#38bdf8" font-weight="700">&gt; Ready for MCP SQL queries</text>
+        <rect x="235" y="-12" width="9" height="16" fill="#00f2fe" filter="url(#soft-glow)"/>
+      </g>
+    </g>
+  </g>
+</svg>

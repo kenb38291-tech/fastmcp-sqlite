@@ -1,6 +1,7 @@
 """Tests for Tokenomics: Markdown Table, Vertical View, JSON, Truncation, and Payload Cap."""
 
 import json
+import sqlite3
 from fastmcp_sqlite.engine import SQLiteEngine
 
 
@@ -92,3 +93,29 @@ def test_blob_formatting(large_payload_db):
         "SELECT id, raw_blob FROM documents WHERE id = 1;", format="json"
     )
     assert "<BLOB 400B>" in res_json
+
+
+def test_unicode_utf8_byte_cap(tmp_path):
+    db_file = tmp_path / "test_unicode.db"
+    conn = sqlite3.connect(str(db_file))
+    cur = conn.cursor()
+    cur.execute("CREATE TABLE unicode_docs (id INTEGER PRIMARY KEY, content TEXT);")
+
+    vietnamese_text = "Hệ thống cơ sở dữ liệu SQLite hiệu năng cao với FastMCP 🚀🔥"
+    cjk_text = "高性能轻量级数据库检索系统 🚀🔥🎉"
+    multibyte_row = f"{vietnamese_text} | {cjk_text}"
+
+    for i in range(50):
+        cur.execute(
+            "INSERT INTO unicode_docs (content) VALUES (?);",
+            (f"{i}: {multibyte_row}",),
+        )
+    conn.commit()
+    conn.close()
+
+    engine = SQLiteEngine(default_db=str(db_file), max_rows=50, max_bytes=1024)
+    res = engine.execute_query("SELECT * FROM unicode_docs;", format="table")
+
+    assert "payload size limit reached" in res
+    assert "Payload byte limit exceeded at row" in res
+    assert len(res.encode("utf-8")) < 1500

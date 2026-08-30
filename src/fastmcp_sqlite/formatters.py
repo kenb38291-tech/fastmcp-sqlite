@@ -63,7 +63,7 @@ def format_markdown_table(
     sep_line = "| " + " | ".join([":---"] * len(col_names)) + " |"
 
     formatted_lines = [header_line, sep_line]
-    total_bytes = sum(len(h) for h in [header_line, sep_line])
+    total_bytes = sum(len(h.encode("utf-8")) for h in [header_line, sep_line])
     payload_truncated = False
 
     for row_idx, row in enumerate(display_rows):
@@ -72,7 +72,7 @@ def format_markdown_table(
             for cell in row
         ]
         row_line = "| " + " | ".join(cell_strs) + " |"
-        total_bytes += len(row_line) + 1
+        total_bytes += len(row_line.encode("utf-8")) + 1
 
         if total_bytes > max_bytes:
             payload_truncated = True
