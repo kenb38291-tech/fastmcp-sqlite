@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="100%" height="100%">
+  <defs>
+    <!-- Risograph Cotton Paper Texture Filter -->
+    <filter id="risoPaper" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="4" stitchTiles="stitch" result="paperNoise" />
+      <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.08 0" in="paperNoise" result="paperTooth" />
+      <feComposite operator="in" in="paperTooth" in2="SourceGraphic" />
+    </filter>
+
+    <!-- Bayer Dither Halftone Dot Pattern (Cyan Soy Drum) -->
+    <pattern id="ditherCyan" width="12" height="12" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.5" fill="#00F0FF" opacity="0.8" />
+      <circle cx="8" cy="8" r="2.2" fill="#00F0FF" opacity="0.9" />
+      <circle cx="2" cy="8" r="1.0" fill="#00F0FF" opacity="0.6" />
+      <circle cx="8" cy="2" r="1.8" fill="#00F0FF" opacity="0.75" />
+    </pattern>
+
+    <!-- Bayer Dither Halftone Dot Pattern (Emerald Soy Drum) -->
+    <pattern id="ditherEmerald" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <circle cx="2" cy="2" r="1.8" fill="#10B981" opacity="0.85" />
+      <circle cx="8" cy="8" r="2.5" fill="#10B981" opacity="0.95" />
+      <circle cx="2" cy="8" r="1.2" fill="#10B981" opacity="0.6" />
+      <circle cx="8" cy="2" r="1.6" fill="#10B981" opacity="0.7" />
+    </pattern>
+
+    <linearGradient id="risoFade" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="60%" stop-color="#00F0FF" />
+      <stop offset="100%" stop-color="#08090D" />
+    </linearGradient>
+  </defs>
+
+  <!-- Heavy Off-Black Uncoated Paper Base -->
+  <rect width="1920" height="1080" fill="#08090D" />
+
+  <!-- Bauhaus / Swiss Grid Lines (Josef Müller-Brockmann Rhythm) -->
+  <g opacity="0.18" stroke="#475569" stroke-width="1">
+    <line x1="80" y1="80" x2="1840" y2="80" />
+    <line x1="80" y1="1000" x2="1840" y2="1000" />
+    <line x1="80" y1="80" x2="80" y2="1000" />
+    <line x1="680" y1="80" x2="680" y2="1000" stroke-dasharray="4,4" />
+    <line x1="1280" y1="80" x2="1280" y2="1000" stroke-dasharray="4,4" />
+    <line x1="1840" y1="80" x2="1840" y2="1000" />
+  </g>
+
+  <!-- Abstract SQLite Page Table Grid (Modular Geometric Matrix) -->
+  <g opacity="0.25">
+    <rect x="1320" y="240" width="140" height="90" fill="none" stroke="#10B981" stroke-width="1.5" />
+    <rect x="1480" y="240" width="140" height="90" fill="none" stroke="#00F0FF" stroke-width="1.5" />
+    <rect x="1640" y="240" width="140" height="90" fill="none" stroke="#64748B" stroke-width="1.5" />
+
+    <rect x="1320" y="350" width="140" height="90" fill="none" stroke="#64748B" stroke-width="1.5" />
+    <rect x="1480" y="350" width="140" height="90" fill="#10B981" fill-opacity="0.15" stroke="#10B981" stroke-width="1.5" />
+    <rect x="1640" y="350" width="140" height="90" fill="none" stroke="#00F0FF" stroke-width="1.5" />
+
+    <text x="1335" y="265" font-family="'JetBrains Mono', monospace" font-size="10" fill="#10B981">PAGE: 4096B</text>
+    <text x="1495" y="265" font-family="'JetBrains Mono', monospace" font-size="10" fill="#00F0FF">WAL_INDEX</text>
+    <text x="1655" y="265" font-family="'JetBrains Mono', monospace" font-size="10" fill="#64748B">MMAP_256M</text>
+  </g>
+
+  <!-- RISO DRUM 1: Emerald Spot Ink Layer with Registration Shift (Δx = -2px, Δy = -1px) -->
+  <g transform="translate(-2, -1)" style="mix-blend-mode: screen;">
+    <!-- Large Organic Ink Splash Curve -->
+    <path d="M 80 620 C 350 480, 580 820, 920 660 C 1260 500, 1450 780, 1840 580 L 1840 940 L 80 940 Z" fill="url(#ditherEmerald)" opacity="0.8" />
+    <path d="M 180 700 C 420 580, 680 860, 1020 720 C 1360 580, 1520 820, 1840 660" fill="none" stroke="#10B981" stroke-width="4" stroke-linecap="square" opacity="0.9" />
+  </g>
+
+  <!-- RISO DRUM 2: Radiant Cyan Spot Ink Layer with Registration Shift (Δx = +2px, Δy = +2px) -->
+  <g transform="translate(2, 2)" style="mix-blend-mode: screen;">
+    <!-- Fluid Wave Overlay producing Riso Overprint Color -->
+    <path d="M 80 680 C 400 540, 640 860, 980 700 C 1320 540, 1500 820, 1840 640 L 1840 980 L 80 980 Z" fill="url(#ditherCyan)" opacity="0.85" />
+    <path d="M 80 680 C 400 540, 640 860, 980 700 C 1320 540, 1500 820, 1840 640" fill="none" stroke="#00F0FF" stroke-width="3" stroke-linecap="square" opacity="0.95" />
+  </g>
+
+  <!-- Solid Accent Shapes (Constructivist Balance) -->
+  <circle cx="680" cy="380" r="110" fill="#10B981" opacity="0.12" style="mix-blend-mode: screen;" />
+  <circle cx="720" cy="410" r="85" fill="#00F0FF" opacity="0.15" style="mix-blend-mode: screen;" />
+  <circle cx="700" cy="395" r="4" fill="#FFF" />
+
+  <!-- Editorial Typography & Hierarchy (Pentagram / COLLINS Style) -->
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', sans-serif">
+    <!-- Huge Master Headline -->
+    <text x="120" y="240" font-size="72" font-weight="900" fill="#F8FAFC" letter-spacing="-2">SQLITE / MCP</text>
+    <text x="120" y="310" font-size="32" font-weight="400" fill="#10B981" letter-spacing="4">THE EDITORIAL RISOGRAPH</text>
+
+    <!-- Column 1 Body Copy -->
+    <text x="120" y="400" font-size="12" fill="#94A3B8" font-family="'JetBrains Mono', monospace" letter-spacing="0.5">
+      <tspan x="120" dy="0">ARCHITECTURAL INVARIANT 01 // WAL CONCURRENCY</tspan>
+      <tspan x="120" dy="20">PRAGMA busy_timeout = 5000;</tspan>
+      <tspan x="120" dy="20">PRAGMA journal_mode = WAL;</tspan>
+      <tspan x="120" dy="20">PRAGMA synchronous = NORMAL;</tspan>
+      <tspan x="120" dy="20">PRAGMA mmap_size = 268435456;</tspan>
+    </text>
+
+    <!-- Column 2 Body Copy -->
+    <text x="680" y="220" font-size="11" fill="#64748B" letter-spacing="1.5">
+      <tspan x="680" dy="0">STUDIO SERIES: NEO-ANALOG EXPERIMENTAL</tspan>
+      <tspan x="680" dy="18">MEDIUM: 2-DRUM RISOGRAPH OVERPRINT</tspan>
+      <tspan x="680" dy="18">INKS: SOY TEAL (10B981) + SOY CYAN (00F0FF)</tspan>
+      <tspan x="680" dy="18">DITHER: 4×4 BAYER MATRIX DOT DENSITY</tspan>
+    </text>
+
+    <!-- Footer Metadata -->
+    <text x="120" y="970" font-size="11" fill="#475569" letter-spacing="1">FASTMCP-SQLITE // CURATED ART DIRECTION // ANTI-AI SLOP FRAMEWORK</text>
+    <text x="1800" y="970" text-anchor="end" font-size="11" fill="#475569" font-family="'JetBrains Mono', monospace">EDITION 01/50 // ARCHIVAL PRINT</text>
+  </g>
+
+  <!-- Heavy Tactile Risograph Paper Tooth Filter Overlay -->
+  <rect width="1920" height="1080" fill="#FFF" opacity="0.06" filter="url(#risoPaper)" style="mix-blend-mode: overlay; pointer-events: none;" />
+</svg>

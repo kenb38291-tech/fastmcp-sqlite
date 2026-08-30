@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>fastmcp-sqlite: Conceptual Tech Art & Visual Metaphor Gallery</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.8; filter: drop-shadow(0 0 15px rgba(6, 182, 212, 0.6)); }
+      50% { opacity: 1; filter: drop-shadow(0 0 30px rgba(16, 185, 129, 0.9)); }
+    }
+    @keyframes orbit-rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes beam-strike {
+      0% { stroke-dashoffset: 1000; opacity: 0.2; }
+      50% { opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: 0.9; }
+    }
+    .glow-cyan { filter: drop-shadow(0 0 12px #06b6d4); }
+    .glow-emerald { filter: drop-shadow(0 0 12px #10b981); }
+    .glow-amber { filter: drop-shadow(0 0 12px #f59e0b); }
+    .glow-violet { filter: drop-shadow(0 0 12px #8b5cf6); }
+    .glow-rose { filter: drop-shadow(0 0 12px #f43f5e); }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen p-4 md:p-8">
+  <div class="max-w-7xl mx-auto space-y-8">
+    
+    <!-- Header -->
+    <header class="border-b border-slate-800 pb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 text-xs font-mono uppercase tracking-wider mb-2">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+          Conceptual Tech Art Exhibition
+        </div>
+        <h1 class="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
+          fastmcp-sqlite: Visual Metaphor Suite
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">
+          High-dimensional architectural symbolism & algorithmic visual narratives by Antigravity Design Specialist
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="switchTab('tab-btree')" id="btn-btree" class="px-4 py-2 rounded-lg text-xs font-mono font-medium transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-lg shadow-cyan-950/50">
+          01. Quantum B-Tree [O(1)]
+        </button>
+        <button onclick="switchTab('tab-nexus')" id="btn-nexus" class="px-4 py-2 rounded-lg text-xs font-mono font-medium transition-all bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-700">
+          02. Neural Nexus [MCP]
+        </button>
+        <button onclick="switchTab('tab-shield')" id="btn-shield" class="px-4 py-2 rounded-lg text-xs font-mono font-medium transition-all bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-700">
+          03. Token Shield [Watchdog]
+        </button>
+      </div>
+    </header>
+
+    <!-- TAB 1: The Quantum B-Tree Core -->
+    <section id="tab-btree" class="tab-content grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div class="lg:col-span-8 bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+        <div class="absolute top-0 right-0 px-4 py-1.5 bg-cyan-500/10 border-b border-l border-cyan-500/30 rounded-bl-xl text-cyan-400 font-mono text-xs">
+          O(1) Leaf Probing Simulation
+        </div>
+        <h2 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+          <span class="text-cyan-400">Artwork I:</span> The Quantum B-Tree Core
+        </h2>
+        <p class="text-slate-400 text-xs mb-4">
+          Visual metaphor of instant scale-independence: while intermediate nodes rest in dark obsidian quiescence, the quantum probe strikes the rightmost leaf page directly in constant time.
+        </p>
+
+        <!-- Canvas Art Container -->
+        <div class="relative w-full aspect-video bg-black/80 rounded-xl border border-slate-800/80 overflow-hidden flex items-center justify-center">
+          <canvas id="canvas-btree" width="960" height="540" class="w-full h-full object-contain"></canvas>
+          <div class="absolute bottom-3 left-3 bg-slate-950/80 backdrop-blur border border-slate-800 rounded-lg px-3 py-1.5 text-[11px] font-mono text-slate-300 flex items-center gap-3">
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-cyan-400"></span> Probing Ray: MAX(_rowid_)</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Leaf Hit Latency: 0.12ms</span>
+          </div>
+        </div>
+
+        <div class="mt-4 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <button onclick="triggerLaser()" class="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 shadow-md shadow-cyan-500/20">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Fire O(1) Laser Probe
+            </button>
+            <button onclick="toggleBTreeAnim()" id="btn-anim-btree" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono rounded-lg transition-all">
+              Pause Particles
+            </button>
+          </div>
+          <span class="text-xs font-mono text-slate-500">B-Tree Depth: 4 | Leaf Count: 65,536 | Probe Time: O(1)</span>
+        </div>
+      </div>
+
+      <!-- Analysis Card -->
+      <div class="lg:col-span-4 space-y-4">
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <h3 class="text-xs font-mono uppercase tracking-wider text-cyan-400 font-bold mb-3">Artistic & Conceptual Anatomy</h3>
+          <ul class="space-y-3 text-xs text-slate-300">
+            <li class="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80">
+              <strong class="text-cyan-300 block mb-1">1. The Void & Symmetrical Tiering</strong>
+              Deep obsidian cosmic background symbolizes unallocated storage space; crystalline B-Tree tiers represent balanced SQLite page headers without memory fragmentation.
+            </li>
+            <li class="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80">
+              <strong class="text-emerald-300 block mb-1">2. Laser Probe (The Bookmark Metaphor)</strong>
+              Coherent cyan photon ray completely bypasses table-scan traversal, executing `SELECT MAX(_rowid_)` right into the rightmost leaf block within single I/O cycle.
+            </li>
+            <li class="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80">
+              <strong class="text-teal-300 block mb-1">3. Crystalline Refraction</strong>
+              Subsurface scattering in leaf nodes represents memory-mapped I/O (`mmap_size=256MB`), glowing upon discovery.
+            </li>
+          </ul>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <h3 class="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold mb-2">Master Prompt Blueprint</h3>
+          <p class="text-[11px] font-mono text-slate-400 leading-relaxed bg-slate-950 p-3 rounded-lg border border-slate-800/60 select-all">
+            "Cinematic 3D conceptual tech art representing O(1) constant time B-Tree leaf probing in SQLite architecture. A monolithic, perfectly balanced hyper-geometric B-Tree construct forged from dark frosted glass and matte obsidian floating in a deep cosmic void. From the zenith root, crystalline tiers branch symmetrically with internal refractive geometry. A singular, intense coherent laser beam of vibrant cyan and electric emerald energy bypasses all intermediate nodes, striking the absolute rightmost leaf page directly with pinpoint precision. The rightmost leaf node bursts into an ethereal, iridescent luminescence with micro-data particles floating in suspension. High-end Octane render, volumetric atmosphere, raytraced subsurface scattering, global illumination, shallow depth of field, dramatic cinematic lighting, pristine cybernetic minimalism, 8k resolution."
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: The Multi-Agent Neural Nexus -->
+    <section id="tab-nexus" class="tab-content hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div class="lg:col-span-8 bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+        <div class="absolute top-0 right-0 px-4 py-1.5 bg-violet-500/10 border-b border-l border-violet-500/30 rounded-bl-xl text-violet-400 font-mono text-xs">
+          MCP Gateway Convergence
+        </div>
+        <h2 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+          <span class="text-violet-400">Artwork II:</span> The Multi-Agent Neural Nexus
+        </h2>
+        <p class="text-slate-400 text-xs mb-4">
+          Visual metaphor of multi-agent orchestration: Claude (Ultraviolet), Cursor (Amber), and Antigravity (Cyan) streams converging into an ultra-pure SQLite quantum monolith via MCP JSON-RPC.
+        </p>
+
+        <!-- Canvas Art Container -->
+        <div class="relative w-full aspect-video bg-black/80 rounded-xl border border-slate-800/80 overflow-hidden flex items-center justify-center">
+          <canvas id="canvas-nexus" width="960" height="540" class="w-full h-full object-contain"></canvas>
+          <div class="absolute bottom-3 left-3 bg-slate-950/80 backdrop-blur border border-slate-800 rounded-lg px-3 py-1.5 text-[11px] font-mono text-slate-300 flex items-center gap-3">
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-violet-400"></span> Claude: Reasoning</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Cursor: DML Write</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-cyan-400"></span> Antigravity: Subagents</span>
+          </div>
+        </div>
+
+        <div class="mt-4 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <button onclick="burstNexus()" class="px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 shadow-md shadow-violet-600/30">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/></svg>
+              Trigger Agent Sync Pulse
+            </button>
+            <button onclick="toggleNexusAnim()" id="btn-anim-nexus" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono rounded-lg transition-all">
+              Pause Streams
+            </button>
+          </div>
+          <span class="text-xs font-mono text-slate-500">WAL Concurrent Mode: 3 Readers + 1 Atomic Writer</span>
+        </div>
+      </div>
+
+      <!-- Analysis Card -->
+      <div class="lg:col-span-4 space-y-4">
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <h3 class="text-xs font-mono uppercase tracking-wider text-violet-400 font-bold mb-3">Artistic & Conceptual Anatomy</h3>
+          <ul class="space-y-3 text-xs text-slate-300">
+            <li class="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80">
+              <strong class="text-violet-300 block mb-1">1. The Central Monolithic Crystal</strong>
+              The monolithic cubic core represents standard-library zero-dependency SQLite: self-contained, unyielding, and operating without external database processes.
+            </li>
+            <li class="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80">
+              <strong class="text-amber-300 block mb-1">2. Chromatic Consciousness Streams</strong>
+              Individual agent identities mapped to distinct optical spectral wavelengths, feeding JSON-RPC queries into the central MCP conduit.
+            </li>
+            <li class="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80">
+              <strong class="text-cyan-300 block mb-1">3. Prismatic Orbital Rings (WAL Mode)</strong>
+              Concentric rotating rings symbolize Write-Ahead Logging shared memory (`-shm`) allowing concurrent multi-agent reading without lock blocking.
+            </li>
+          </ul>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <h3 class="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold mb-2">Master Prompt Blueprint</h3>
+          <p class="text-[11px] font-mono text-slate-400 leading-relaxed bg-slate-950 p-3 rounded-lg border border-slate-800/60 select-all">
+            "Conceptual high-tech 3D architectural illustration depicting a central Model Context Protocol (MCP) Nexus Gateway for SQLite. In the epicenter levitates an ultra-pure, monolithic cuboid crystal of polished dark obsidian and translucent quartz, glowing with internal golden data circuits. Three powerful chromatic streams of sentient energy spiral towards the crystal: an intense royal ultraviolet consciousness stream, an incandescent molten amber algorithmic thread, and a vivid luminescent cyan autonomous agent vector. Encircling the monolith are three concentric iridescent refractive rings spinning along multi-axis paths, casting delicate caustic light onto a sleek wet-stone dark platform. Volumetric fog, raytraced glass refraction, cinematic studio lighting, elegant futuristic tech surrealism, 8k masterpiece."
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: The Token Armor & Watchdog Shield -->
+    <section id="tab-shield" class="tab-content hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div class="lg:col-span-8 bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+        <div class="absolute top-0 right-0 px-4 py-1.5 bg-rose-500/10 border-b border-l border-rose-500/30 rounded-bl-xl text-rose-400 font-mono text-xs">
+          Opcode Watchdog & Token Guard
+        </div>
+        <h2 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+          <span class="text-rose-400">Artwork III:</span> The Token Armor & Watchdog Shield
+        </h2>
+        <p class="text-slate-400 text-xs mb-4">
+          Visual metaphor of defensive engineering: kinetic tessellated armor constricting token payloads within 24KB ceiling, while the Watchdog sentinel eye interrupts runaway recursive queries in &lt;5ms.
+        </p>
+
+        <!-- Canvas Art Container -->
+        <div class="relative w-full aspect-video bg-black/80 rounded-xl border border-slate-800/80 overflow-hidden flex items-center justify-center">
+          <canvas id="canvas-shield" width="960" height="540" class="w-full h-full object-contain"></canvas>
+          <div class="absolute bottom-3 left-3 bg-slate-950/80 backdrop-blur border border-slate-800 rounded-lg px-3 py-1.5 text-[11px] font-mono text-slate-300 flex items-center gap-3">
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Token Stream: 24,576 B</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Watchdog: 1,000,000 Opcode Limit</span>
+          </div>
+        </div>
+
+        <div class="mt-4 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <button onclick="triggerWatchdog()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 shadow-md shadow-rose-600/30">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              Simulate Runaway Query Break
+            </button>
+            <button onclick="toggleShieldAnim()" id="btn-anim-shield" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono rounded-lg transition-all">
+              Pause Armor Kinetics
+            </button>
+          </div>
+          <span class="text-xs font-mono text-slate-500">Progress Watchdog: 10,000 Step Cadence</span>
+        </div>
+      </div>
+
+      <!-- Analysis Card -->
+      <div class="lg:col-span-4 space-y-4">
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <h3 class="text-xs font-mono uppercase tracking-wider text-rose-400 font-bold mb-3">Artistic & Conceptual Anatomy</h3>
+          <ul class="space-y-3 text-xs text-slate-300">
+            <li class="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80">
+              <strong class="text-rose-300 block mb-1">1. The Watchdog Sentinel Aperture</strong>
+              The hovering mechanical iris lens monitors execution opcodes with ruby focal energy, ready to return 1 to interrupt infinite CTE recursion immediately.
+            </li>
+            <li class="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80">
+              <strong class="text-amber-300 block mb-1">2. Golden Token Filaments</strong>
+              Semantic data formatted as glowing luminescent threads, flowing securely through cell-level truncation gates (200 chars max).
+            </li>
+            <li class="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80">
+              <strong class="text-slate-300 block mb-1">3. Tessellated Obsidian Armor</strong>
+              Interlocking hexagonal forceplates encapsulate context window memory, enforcing the strict 24KB payload ceiling without memory blowup.
+            </li>
+          </ul>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <h3 class="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold mb-2">Master Prompt Blueprint</h3>
+          <p class="text-[11px] font-mono text-slate-400 leading-relaxed bg-slate-950 p-3 rounded-lg border border-slate-800/60 select-all">
+            "Conceptual 3D tech artwork visualizing AI token guardrails and SQLite query watchdog safety. In the center, a dense glowing stream of golden semantic data filaments flows through a floating kinetic armor constructed from interlocking hexagonal matte obsidian and frosted glass plates that mechanically compress the stream into a compact cylindrical channel. Above this chamber hovers an imposing sentinel eye—a cybernetic chronometer crafted from brushed gunmetal with an intricate mechanical aperture and an intense glowing ruby laser core. When an anomaly triggers, a razor-sharp ruby optical barrier severs the runaway filament with sub-millisecond precision. Volumetric atmospheric haze, sharp rim lighting, cinematic chiaroscuro, Octane render, photorealistic materials, 8k resolution."
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Visual Metaphor Matrix Table -->
+    <footer class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 backdrop-blur">
+      <h3 class="text-sm font-mono uppercase tracking-wider text-slate-300 font-bold mb-4 flex items-center gap-2">
+        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        Metaphor Mapping Matrix for fastmcp-sqlite
+      </h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs font-mono">
+          <thead class="bg-slate-950 text-slate-400 border-b border-slate-800">
+            <tr>
+              <th class="p-3">Component / Mechanism</th>
+              <th class="p-3">Underlying Tech Invariant</th>
+              <th class="p-3">Visual Metaphor Symbol</th>
+              <th class="p-3">Chromatic Palette</th>
+              <th class="p-3">Cognitive Value</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 text-slate-300">
+            <tr>
+              <td class="p-3 font-bold text-cyan-300">O(1) Schema Discovery</td>
+              <td class="p-3 text-slate-400">`MAX(_rowid_)` rightmost leaf page probe</td>
+              <td class="p-3">Crystalline B-Tree & Direct Laser Ray</td>
+              <td class="p-3 text-cyan-400">#06B6D4 / #10B981</td>
+              <td class="p-3">Communicates zero-latency scale independence</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-bold text-violet-300">MCP Multi-Agent Gateway</td>
+              <td class="p-3 text-slate-400">Stdio JSON-RPC tool orchestration</td>
+              <td class="p-3">Multi-stream Neural Conduit & Monolith</td>
+              <td class="p-3 text-violet-400">#8B5CF6 / #F59E0B / #06B6D4</td>
+              <td class="p-3">Eliminates clunky server rack / robot clichés</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-bold text-rose-300">Watchdog & Token Limiter</td>
+              <td class="p-3 text-slate-400">Opcode progress handler & 24KB ceiling</td>
+              <td class="p-3">Tessellated Armor & Sentinel Guillotine</td>
+              <td class="p-3 text-rose-400">#F43F5E / #FBBF24 / #0F172A</td>
+              <td class="p-3">Visualizes fail-safe protection & token economy</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-bold text-teal-300">WAL & Page Cache</td>
+              <td class="p-3 text-slate-400">`mmap 256MB`, `cache -64000`, WAL shm</td>
+              <td class="p-3">Concentric Iridescent Refraction Rings</td>
+              <td class="p-3 text-teal-400">#14B8A6 / #38BDF8</td>
+              <td class="p-3">Depicts frictionless concurrent read/write</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    // Tab switching logic
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+      
+      // Update buttons
+      ['btree', 'nexus', 'shield'].forEach(k => {
+        const btn = document.getElementById('btn-' + k);
+        if ('tab-' + k === tabId) {
+          btn.className = "px-4 py-2 rounded-lg text-xs font-mono font-medium transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-lg shadow-cyan-950/50";
+        } else {
+          btn.className = "px-4 py-2 rounded-lg text-xs font-mono font-medium transition-all bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-700";
+        }
+      });
+    }
+
+    // ==========================================
+    // CANVAS 1: Quantum B-Tree Core Animation
+    // ==========================================
+    const canvasBTree = document.getElementById('canvas-btree');
+    const ctxBTree = canvasBTree.getContext('2d');
+    let btreeRunning = true;
+    let laserProgress = 1.0;
+    let btreeParticles = [];
+
+    for (let i = 0; i < 40; i++) {
+      btreeParticles.push({
+        x: 820 + (Math.random() - 0.5) * 80,
+        y: 450 + (Math.random() - 0.5) * 40,
+        vx: (Math.random() - 0.5) * 1.5,
+        vy: -Math.random() * 2 - 0.5,
+        size: Math.random() * 2.5 + 1,
+        alpha: Math.random() * 0.8 + 0.2,
+        color: Math.random() > 0.5 ? '#06b6d4' : '#10b981'
+      });
+    }
+
+    function drawBTree() {
+      ctxBTree.fillStyle = '#030712';
+      ctxBTree.fillRect(0, 0, canvasBTree.width, canvasBTree.height);
+
+      // Grid background
+      ctxBTree.strokeStyle = '#0f172a';
+      ctxBTree.lineWidth = 1;
+      for (let x = 0; x < canvasBTree.width; x += 40) {
+        ctxBTree.beginPath(); ctxBTree.moveTo(x, 0); ctxBTree.lineTo(x, canvasBTree.height); ctxBTree.stroke();
+      }
+      for (let y = 0; y < canvasBTree.height; y += 40) {
+        ctxBTree.beginPath(); ctxBTree.moveTo(0, y); ctxBTree.lineTo(canvasBTree.width, y); ctxBTree.stroke();
+      }
+
+      // Root Node
+      const rootX = 480, rootY = 70;
+      
+      // Tier 1 Nodes
+      const t1 = [{x: 240, y: 180}, {x: 480, y: 180}, {x: 720, y: 180}];
+      
+      // Tier 2 Nodes (Leaves)
+      const leaves = [
+        {x: 120, y: 320}, {x: 200, y: 320}, {x: 280, y: 320},
+        {x: 400, y: 320}, {x: 480, y: 320}, {x: 560, y: 320},
+        {x: 680, y: 320}, {x: 760, y: 320}, {x: 840, y: 440, isTarget: true} // Rightmost probed leaf
+      ];
+
+      // Draw branch connections (Matte Obsidian)
+      ctxBTree.strokeStyle = '#1e293b';
+      ctxBTree.lineWidth = 2;
+      t1.forEach(n => {
+        ctxBTree.beginPath(); ctxBTree.moveTo(rootX, rootY); ctxBTree.lineTo(n.x, n.y); ctxBTree.stroke();
+      });
+
+      t1.forEach((n, idx) => {
+        const sub = leaves.slice(idx * 3, idx * 3 + 3);
+        sub.forEach(leaf => {
+          ctxBTree.beginPath(); ctxBTree.moveTo(n.x, n.y); ctxBTree.lineTo(leaf.x, leaf.y); ctxBTree.stroke();
+        });
+      });
+
+      // Draw internal nodes
+      [ {x: rootX, y: rootY}, ...t1, ...leaves.filter(l => !l.isTarget) ].forEach(node => {
+        ctxBTree.fillStyle = '#0f172a';
+        ctxBTree.strokeStyle = '#334155';
+        ctxBTree.lineWidth = 1.5;
+        ctxBTree.beginPath();
+        ctxBTree.roundRect(node.x - 22, node.y - 12, 44, 24, 6);
+        ctxBTree.fill();
+        ctxBTree.stroke();
+      });
+
+      // The O(1) Laser Ray bypassing the tree
+      if (laserProgress > 0) {
+        ctxBTree.save();
+        ctxBTree.strokeStyle = '#06b6d4';
+        ctxBTree.lineWidth = 3;
+        ctxBTree.shadowColor = '#06b6d4';
+        ctxBTree.shadowBlur = 18;
+        ctxBTree.beginPath();
+        ctxBTree.moveTo(rootX, rootY);
+        // Direct laser curve
+        ctxBTree.bezierCurveTo(700, 100, 880, 250, 840, 440);
+        ctxBTree.stroke();
+
+        // Inner white beam
+        ctxBTree.strokeStyle = '#ffffff';
+        ctxBTree.lineWidth = 1.5;
+        ctxBTree.shadowBlur = 6;
+        ctxBTree.stroke();
+        ctxBTree.restore();
+      }
+
+      // The Target Rightmost Leaf Page (Glowing Emerald & Cyan)
+      const target = leaves.find(l => l.isTarget);
+      ctxBTree.save();
+      ctxBTree.fillStyle = '#022c22';
+      ctxBTree.strokeStyle = '#10b981';
+      ctxBTree.lineWidth = 3;
+      ctxBTree.shadowColor = '#10b981';
+      ctxBTree.shadowBlur = 25;
+      ctxBTree.beginPath();
+      ctxBTree.roundRect(target.x - 36, target.y - 18, 72, 36, 8);
+      ctxBTree.fill();
+      ctxBTree.stroke();
+
+      // Text inside leaf
+      ctxBTree.fillStyle = '#a7f3d0';
+      ctxBTree.font = 'bold 11px monospace';
+      ctxBTree.textAlign = 'center';
+      ctxBTree.fillText('LEAF_MAX', target.x, target.y + 4);
+      ctxBTree.restore();
+
+      // Particle system at target
+      if (btreeRunning) {
+        btreeParticles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.alpha -= 0.008;
+          if (p.alpha <= 0 || p.y < 350) {
+            p.x = 840 + (Math.random() - 0.5) * 40;
+            p.y = 440 + (Math.random() - 0.5) * 10;
+            p.vy = -Math.random() * 2 - 0.5;
+            p.alpha = Math.random() * 0.8 + 0.2;
+          }
+          ctxBTree.save();
+          ctxBTree.fillStyle = p.color;
+          ctxBTree.globalAlpha = p.alpha;
+          ctxBTree.shadowColor = p.color;
+          ctxBTree.shadowBlur = 8;
+          ctxBTree.beginPath();
+          ctxBTree.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctxBTree.fill();
+          ctxBTree.restore();
+        });
+      }
+
+      requestAnimationFrame(drawBTree);
+    }
+    drawBTree();
+
+    function triggerLaser() {
+      laserProgress = 1.0;
+      // Add explosive burst of particles
+      for (let i = 0; i < 30; i++) {
+        btreeParticles.push({
+          x: 840,
+          y: 440,
+          vx: (Math.random() - 0.5) * 5,
+          vy: (Math.random() - 0.5) * 5,
+          size: Math.random() * 3 + 1,
+          alpha: 1,
+          color: Math.random() > 0.3 ? '#10b981' : '#38bdf8'
+        });
+      }
+    }
+
+    function toggleBTreeAnim() {
+      btreeRunning = !btreeRunning;
+      document.getElementById('btn-anim-btree').textContent = btreeRunning ? 'Pause Particles' : 'Resume Particles';
+    }
+
+    // ==========================================
+    // CANVAS 2: Multi-Agent Neural Nexus
+    // ==========================================
+    const canvasNexus = document.getElementById('canvas-nexus');
+    const ctxNexus = canvasNexus.getContext('2d');
+    let nexusAngle = 0;
+    let nexusRunning = true;
+    let nexusStreams = [];
+
+    function drawNexus() {
+      ctxNexus.fillStyle = '#020617';
+      ctxNexus.fillRect(0, 0, canvasNexus.width, canvasNexus.height);
+
+      const cx = 480, cy = 270;
+
+      // Rotating Prismatic Rings (WAL Mode Shared Memory)
+      if (nexusRunning) nexusAngle += 0.015;
+
+      ctxNexus.save();
+      ctxNexus.translate(cx, cy);
+
+      // Ring 1 (Outer - Cyan)
+      ctxNexus.rotate(nexusAngle);
+      ctxNexus.strokeStyle = 'rgba(6, 182, 212, 0.4)';
+      ctxNexus.lineWidth = 2;
+      ctxNexus.setLineDash([15, 8]);
+      ctxNexus.beginPath();
+      ctxNexus.ellipse(0, 0, 180, 70, 0, 0, Math.PI * 2);
+      ctxNexus.stroke();
+
+      // Ring 2 (Middle - Violet)
+      ctxNexus.rotate(-nexusAngle * 1.5);
+      ctxNexus.strokeStyle = 'rgba(139, 92, 246, 0.5)';
+      ctxNexus.lineWidth = 2.5;
+      ctxNexus.setLineDash([20, 10]);
+      ctxNexus.beginPath();
+      ctxNexus.ellipse(0, 0, 140, 50, Math.PI / 4, 0, Math.PI * 2);
+      ctxNexus.stroke();
+
+      // Ring 3 (Inner - Amber)
+      ctxNexus.rotate(nexusAngle * 0.8);
+      ctxNexus.strokeStyle = 'rgba(245, 158, 11, 0.6)';
+      ctxNexus.lineWidth = 2;
+      ctxNexus.setLineDash([10, 5]);
+      ctxNexus.beginPath();
+      ctxNexus.ellipse(0, 0, 100, 35, -Math.PI / 3, 0, Math.PI * 2);
+      ctxNexus.stroke();
+      ctxNexus.setLineDash([]);
+      ctxNexus.restore();
+
+      // Draw 3 Inflowing Agent Streams
+      const t = Date.now() * 0.002;
+      // Claude Stream (Violet from top left)
+      drawEnergyStream(ctxNexus, 100, 80, cx, cy, '#8b5cf6', '#c084fc', t, 'Claude 3.7 Reasoning');
+      // Cursor Stream (Amber from bottom left)
+      drawEnergyStream(ctxNexus, 120, 460, cx, cy, '#f59e0b', '#fbbf24', t + 1, 'Cursor DML Fast-Write');
+      // Antigravity Stream (Cyan from right)
+      drawEnergyStream(ctxNexus, 860, 270, cx, cy, '#06b6d4', '#67e8f9', t + 2, 'Antigravity Autonomous Swarm');
+
+      // Central SQLite Monolithic Crystal
+      ctxNexus.save();
+      ctxNexus.shadowColor = '#06b6d4';
+      ctxNexus.shadowBlur = 30;
+      ctxNexus.fillStyle = '#0f172a';
+      ctxNexus.strokeStyle = '#38bdf8';
+      ctxNexus.lineWidth = 3;
+      
+      // Monolith 3D isometric cuboid
+      const mw = 44, mh = 64;
+      ctxNexus.beginPath();
+      ctxNexus.moveTo(cx, cy - mh);
+      ctxNexus.lineTo(cx + mw, cy - mh/2);
+      ctxNexus.lineTo(cx + mw, cy + mh/2);
+      ctxNexus.lineTo(cx, cy + mh);
+      ctxNexus.lineTo(cx - mw, cy + mh/2);
+      ctxNexus.lineTo(cx - mw, cy - mh/2);
+      ctxNexus.closePath();
+      ctxNexus.fill();
+      ctxNexus.stroke();
+
+      // Top face
+      ctxNexus.fillStyle = '#1e293b';
+      ctxNexus.beginPath();
+      ctxNexus.moveTo(cx, cy - mh);
+      ctxNexus.lineTo(cx + mw, cy - mh/2);
+      ctxNexus.lineTo(cx, cy);
+      ctxNexus.lineTo(cx - mw, cy - mh/2);
+      ctxNexus.closePath();
+      ctxNexus.fill();
+      ctxNexus.stroke();
+
+      // Center Core Label
+      ctxNexus.fillStyle = '#e0f2fe';
+      ctxNexus.font = 'bold 10px monospace';
+      ctxNexus.textAlign = 'center';
+      ctxNexus.fillText('SQLite Core', cx, cy + 28);
+      ctxNexus.restore();
+
+      requestAnimationFrame(drawNexus);
+    }
+
+    function drawEnergyStream(ctx, x1, y1, x2, y2, color, glowColor, timeOffset, label) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = glowColor;
+      ctx.shadowBlur = 15;
+
+      ctx.beginPath();
+      const midX = (x1 + x2) / 2 + Math.sin(timeOffset) * 40;
+      const midY = (y1 + y2) / 2 + Math.cos(timeOffset) * 30;
+      ctx.moveTo(x1, y1);
+      ctx.quadraticCurveTo(midX, midY, x2, y2);
+      ctx.stroke();
+
+      // Moving photon packets
+      const progress = (timeOffset * 0.5) % 1;
+      const px = (1 - progress) * (1 - progress) * x1 + 2 * (1 - progress) * progress * midX + progress * progress * x2;
+      const py = (1 - progress) * (1 - progress) * y1 + 2 * (1 - progress) * progress * midY + progress * progress * y2;
+      
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowBlur = 20;
+      ctx.beginPath();
+      ctx.arc(px, py, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Agent Node Circle & Label
+      ctx.fillStyle = '#0f172a';
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x1, y1, 14, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = x1 > x2 ? 'left' : 'right';
+      ctx.fillText(label, x1 + (x1 > x2 ? 22 : -22), y1 + 4);
+      ctx.restore();
+    }
+    drawNexus();
+
+    function burstNexus() {
+      nexusAngle += 1.5;
+    }
+
+    function toggleNexusAnim() {
+      nexusRunning = !nexusRunning;
+      document.getElementById('btn-anim-nexus').textContent = nexusRunning ? 'Pause Streams' : 'Resume Streams';
+    }
+
+    // ==========================================
+    // CANVAS 3: Token Armor & Watchdog Shield
+    // ==========================================
+    const canvasShield = document.getElementById('canvas-shield');
+    const ctxShield = canvasShield.getContext('2d');
+    let shieldRunning = true;
+    let watchdogTriggered = false;
+    let watchdogTimer = 0;
+
+    function drawShield() {
+      ctxShield.fillStyle = '#09090b';
+      ctxShield.fillRect(0, 0, canvasShield.width, canvasShield.height);
+
+      const cx = 480, cy = 270;
+      const t = Date.now() * 0.003;
+
+      // Token Channel (The 24KB Pipe)
+      ctxShield.save();
+      ctxShield.strokeStyle = '#27272a';
+      ctxShield.lineWidth = 40;
+      ctxShield.beginPath();
+      ctxShield.moveTo(80, cy);
+      ctxShield.lineTo(880, cy);
+      ctxShield.stroke();
+
+      // Golden Token Filaments flowing through
+      if (!watchdogTriggered || watchdogTimer > 100) {
+        for (let i = 0; i < 5; i++) {
+          const offset = (i - 2) * 6;
+          ctxShield.strokeStyle = i === 2 ? '#fbbf24' : 'rgba(251, 191, 36, 0.6)';
+          ctxShield.lineWidth = 2;
+          ctxShield.shadowColor = '#fbbf24';
+          ctxShield.shadowBlur = 10;
+          ctxShield.beginPath();
+          ctxShield.moveTo(80, cy + offset);
+          for (let x = 80; x < 880; x += 30) {
+            const wave = Math.sin((x * 0.02) + t * 4 + i) * 8;
+            ctxShield.lineTo(x, cy + offset + wave);
+          }
+          ctxShield.stroke();
+        }
+      }
+      ctxShield.restore();
+
+      // Tessellated Obsidian Armor Hexagons (Constraint Boundary)
+      const hexPoints = [
+        {x: 320, y: cy - 60}, {x: 400, y: cy - 60}, {x: 480, y: cy - 60}, {x: 560, y: cy - 60}, {x: 640, y: cy - 60},
+        {x: 320, y: cy + 60}, {x: 400, y: cy + 60}, {x: 480, y: cy + 60}, {x: 560, y: cy + 60}, {x: 640, y: cy + 60}
+      ];
+
+      hexPoints.forEach((hp, idx) => {
+        ctxShield.save();
+        ctxShield.fillStyle = '#18181b';
+        ctxShield.strokeStyle = '#3f3f46';
+        ctxShield.lineWidth = 2;
+        const breath = Math.sin(t * 2 + idx) * 3;
+        drawHex(ctxShield, hp.x, hp.y + breath, 26);
+        ctxShield.fill();
+        ctxShield.stroke();
+        ctxShield.restore();
+      });
+
+      // The Sentinel Watchdog Aperture (Hovering at top center)
+      ctxShield.save();
+      const eyeY = 110;
+      ctxShield.shadowColor = watchdogTriggered ? '#f43f5e' : '#e11d48';
+      ctxShield.shadowBlur = watchdogTriggered ? 40 : 20;
+
+      // Outer Iris Housing
+      ctxShield.fillStyle = '#18181b';
+      ctxShield.strokeStyle = watchdogTriggered ? '#f43f5e' : '#71717a';
+      ctxShield.lineWidth = 3;
+      ctxShield.beginPath();
+      ctxShield.arc(cx, eyeY, 44, 0, Math.PI * 2);
+      ctxShield.fill();
+      ctxShield.stroke();
+
+      // Ruby Core Lens
+      ctxShield.fillStyle = watchdogTriggered ? '#ff1744' : '#be123c';
+      ctxShield.beginPath();
+      ctxShield.arc(cx, eyeY, 18, 0, Math.PI * 2);
+      ctxShield.fill();
+
+      // Laser Guillotine Blade if Triggered
+      if (watchdogTriggered) {
+        ctxShield.strokeStyle = '#ff1744';
+        ctxShield.lineWidth = 6;
+        ctxShield.shadowColor = '#ff1744';
+        ctxShield.shadowBlur = 35;
+        ctxShield.beginPath();
+        ctxShield.moveTo(cx, eyeY + 18);
+        ctxShield.lineTo(cx, cy + 50);
+        ctxShield.stroke();
+
+        // Severance sparks
+        for (let s = 0; s < 12; s++) {
+          ctxShield.fillStyle = '#fecdd3';
+          ctxShield.beginPath();
+          ctxShield.arc(cx + (Math.random() - 0.5) * 40, cy + (Math.random() - 0.5) * 20, Math.random() * 3 + 1, 0, Math.PI * 2);
+          ctxShield.fill();
+        }
+
+        // Warning Label
+        ctxShield.fillStyle = '#ff1744';
+        ctxShield.font = 'bold 12px monospace';
+        ctxShield.textAlign = 'center';
+        ctxShield.fillText('WATCHDOG ABORT: OPCODE CEILING EXCEEDED (>1M OPS)', cx, cy + 85);
+        watchdogTimer++;
+        if (watchdogTimer > 180) {
+          watchdogTriggered = false;
+          watchdogTimer = 0;
+        }
+      }
+      ctxShield.restore();
+
+      requestAnimationFrame(drawShield);
+    }
+
+    function drawHex(ctx, x, y, r) {
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI / 3) * i;
+        const hx = x + r * Math.cos(a);
+        const hy = y + r * Math.sin(a);
+        if (i === 0) ctx.moveTo(hx, hy);
+        else ctx.lineTo(hx, hy);
+      }
+      ctx.closePath();
+    }
+    drawShield();
+
+    function triggerWatchdog() {
+      watchdogTriggered = true;
+      watchdogTimer = 0;
+    }
+
+    function toggleShieldAnim() {
+      shieldRunning = !shieldRunning;
+      document.getElementById('btn-anim-shield').textContent = shieldRunning ? 'Pause Armor Kinetics' : 'Resume Armor Kinetics';
+    }
+  </script>
+</body>
+</html>

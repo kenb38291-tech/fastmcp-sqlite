@@ -9,7 +9,7 @@
 # fastmcp-sqlite
 
 **The high-performance, token-efficient SQLite Model Context Protocol server for AI coding agents.**  
-*Zero native compiler dependencies · O(1) schema discovery · Runaway query watchdog · ACID write safety*
+*Zero native compiler dependencies · Non-blocking schema discovery · Runaway query watchdog · ACID write safety*
 
 <p align="center">
   <a href="#highlights">Highlights</a> •
@@ -38,16 +38,16 @@
 ## Highlights
 
 - **Zero native dependencies**: Built entirely on Python's standard library `sqlite3` and the official `mcp` SDK. No native C++ compiler toolchain, `node-gyp`, or binary addon installations required.
-- **Sub-20ms CLI cold start**: Lazy module imports and PEP 562 dynamic resolution deliver **6.8ms – 13.1ms** startup latency (101x – 193x faster), eliminating CLI invocation lag across agent workflows.
-- **Prompt caching prefix invariance**: Dynamic discovery latency is isolated to schema footers, achieving **97.01% – 98.92% prefix stability** to maximize prompt cache retention across modern LLMs and agent toolchains.
-- **O(1) constant-time schema discovery**: Inspects table definitions, foreign keys, indexes, and estimated row counts in sub-millisecond time using `sqlite_stat1` and B-Tree rightmost leaf probing without running locking `SELECT COUNT(*)` scans.
-- **Dynamic virtual and FTS5 shadow table filtering**: Automatically detects FTS3/4/5 and RTree virtual tables and cleanly suppresses internal shadow tables (`*_data`, `*_idx`, `*_content`, `*_docsize`, `*_config`), while preserving genuine user tables (`user_data`, `site_config`, `post_content`).
-- **Dynamic extension loading with sandbox lockdown**: Load extensions such as `sqlite-vec` via CLI `--extension` with automatic sandbox lockdown (`conn.enable_load_extension(False)` in `finally`) to prevent SQL injection RCE.
-- **Runaway query watchdog**: Interrupts infinite recursive CTEs and accidental Cartesian product explosions via SQLite's instruction progress handler within **3.6 ms** (default cap: 1,000,000 opcodes).
+- **Sub-20ms CLI cold start**: Lazy module imports and PEP 562 dynamic resolution deliver **6.8ms - 13.1ms** startup latency (101x - 193x faster), eliminating CLI invocation lag across agent workflows.
+- **Prompt caching prefix invariance**: Dynamic discovery latency is isolated to schema footers, maintaining **97.01% - 98.92% prefix stability** to maximize prompt cache retention across modern LLMs and agent toolchains.
+- **Non-blocking schema discovery**: Inspects table definitions, foreign keys, indexes, and estimated row counts in sub-millisecond time using `sqlite_stat1` heuristics and B-Tree rightmost leaf probing (`MAX(_rowid_)`), avoiding locking full-table `SELECT COUNT(*)` scans.
+- **Dynamic virtual and FTS shadow table filtering**: Automatically detects FTS3/4/5 virtual tables and cleanly suppresses internal storage shadow tables (`*_data`, `*_idx`, `*_content`, `*_docsize`, `*_config`, `*_segments`, `*_segdir`, `*_stat`), while preserving legitimate user tables (`user_data`, `site_config`, `post_content`).
+- **Defensive extension loading lockdown**: Load extensions such as `sqlite-vec` via CLI `--extension` with automatic post-initialization lockdown (`conn.enable_load_extension(False)` in `finally`) to prevent unauthorized SQL-level extension loading.
+- **Runaway query watchdog**: Interrupts infinite recursive CTEs and accidental Cartesian product explosions via SQLite's instruction progress handler within **3.6 ms** in benchmarks (default cap: 1,000,000 opcodes).
 - **Multibyte Unicode 24KB byte ceiling guard**: Enforces cell truncation (`cell_max_chars = 200`), BLOB safety, and strict UTF-8 byte counting (`len(line.encode('utf-8'))`) to protect agent context limits against CJK, Vietnamese, and Emoji expansion.
 - **ACID DML with `RETURNING` support**: Exhausts result cursors and commits transactions cleanly on write statements (`INSERT ... RETURNING`), releasing database statement locks immediately.
-- **Fuzzy schema typo self-healing**: Sub-2ms schema diagnosis providing instant suggestions (*"Did you mean: `users`?"*) on misspelled table and column names, preventing redundant LLM error roundtrips.
-- **Universal multi-agent compatibility**: 1-click launch across Claude Desktop, Cursor, Google Antigravity, Windsurf, Cline, Roo Code, Claude Code CLI, Gemini CLI, and Codex.
+- **Fuzzy schema typo self-healing**: Sub-2ms schema diagnosis providing instant suggestions (*"Did you mean: `users`?"*) on misspelled table and column names via Python `difflib` pattern matching, preventing redundant LLM error roundtrips.
+- **Universal multi-agent compatibility**: 1-click launch across Claude Desktop, Cursor, Google Antigravity, Windsurf, Cline, Roo Code, Claude Code CLI, Gemini CLI, and OpenAI Codex.
 
 ---
 
@@ -100,6 +100,7 @@ Location:
 
 > [!TIP]
 > To permit write queries (`INSERT`, `UPDATE`, `DELETE`), append `"--allow-write"` to the `args` list.
+> On Windows, use forward slashes (e.g. `"C:/path/to/database.db"`) or escaped backslashes (`"C:\\path\\to\\database.db"`).
 </details>
 
 <details>
@@ -178,21 +179,28 @@ Add to `cline_mcp_settings.json`:
 Register directly from your terminal:
 
 ```bash
-claude mcp add sqlite -- uvx fastmcp-sqlite --db ./project.db --allow-write
+claude mcp add --transport stdio sqlite -- uvx fastmcp-sqlite --db ./project.db --allow-write
 ```
 </details>
 
 <details>
-<summary><strong>Gemini CLI, Codex, and OpenManus</strong></summary>
+<summary><strong>Gemini CLI and OpenAI Codex</strong></summary>
 
-For Gemini CLI:
-```bash
-gemini mcp add sqlite -- uvx fastmcp-sqlite --db /absolute/path/to/database.db
+For Gemini CLI (`~/.gemini/settings.json`):
+```json
+{
+  "mcpServers": {
+    "sqlite": {
+      "command": "uvx",
+      "args": ["fastmcp-sqlite", "--db", "/absolute/path/to/database.db"]
+    }
+  }
+}
 ```
 
-For Codex (`.codex/config.toml`):
+For OpenAI Codex (`.codex/config.toml` or `~/.codex/config.toml`):
 ```toml
-[mcp.sqlite]
+[mcp_servers.sqlite]
 command = "uvx"
 args = ["fastmcp-sqlite", "--db", "/absolute/path/to/database.db"]
 ```
@@ -206,10 +214,10 @@ args = ["fastmcp-sqlite", "--db", "/absolute/path/to/database.db"]
 
 | Tool | Intent and Action | Parameters | Return Format |
 |---|---|---|---|
-| `schema` | **O(1) Schema Overview**<br>Instant table listing, column types, foreign keys, and estimated row counts without full table scans. | `db` *(optional)*: Database file path. | Markdown formatted schema overview. |
+| `schema` | **Schema Overview**<br>Instant table listing, column types, foreign keys, and estimated row counts without full table scans. | `db` *(optional)*: Database file path. | Markdown formatted schema overview. |
 | `query` | **SQL Execution**<br>Executes arbitrary SQL queries with parameter binding, watchdog guardrails, and output truncation. | `sql`: SQL statement.<br>`params` *(optional)*: List, dict, or JSON string.<br>`format` *(optional)*: `table`, `vertical`, `json`.<br>`readonly` *(optional)*: Enforce read-only per query. | Formatted table, vertical record view, or JSON. |
 | `table_info` | **Deep Table Inspection**<br>Detailed table metadata: columns, data types, constraints, indexes, triggers, DDL SQL, and row count. | `table`: Target table or view name.<br>`db` *(optional)*: Database file path. | Detailed Markdown table specification. |
-| `explain` | **Query Plan Analysis**<br>Analyzes query performance and index utilization via `EXPLAIN QUERY PLAN`. | `sql`: SQL statement.<br>`db` *(optional)*: Database file path. | Tree view of SQLite VDBE query plan. |
+| `explain` | **Query Plan Analysis**<br>Analyzes query performance and index utilization via `EXPLAIN QUERY PLAN`. | `sql`: SQL statement.<br>`params` *(optional)*: List, dict, or JSON string.<br>`db` *(optional)*: Database file path. | Tree view of SQLite VDBE query plan. |
 | `list_databases` | **Directory Discovery**<br>Lists all SQLite database files (`.db`, `.sqlite`, `.sqlite3`) in the directory tree. | `directory` *(optional)*: Directory to scan. | List of resolved database paths and file sizes. |
 
 ---
@@ -220,24 +228,24 @@ args = ["fastmcp-sqlite", "--db", "/absolute/path/to/database.db"]
 
 Tested against the standard Node.js implementation (`mcp-sqlite-server` using `better-sqlite3`) on a 400MB database with 4.57 million rows (`tracker.db`) and a wide 39-column schema (`aegis.db`):
 
-| Metric | fastmcp-sqlite (Python / FastMCP) | Node.js MCP Server (better-sqlite3) | Improvement |
+| Metric | fastmcp-sqlite (Python / FastMCP) | Node.js MCP Server (better-sqlite3) | Root Cause & Technical Advantage |
 |---|---|---|---|
-| **CLI Cold-Start Latency** | **6.8 ms – 13.1 ms** (PEP 562 lazy import architecture) | 1,320.0 ms (Node.js runtime + addon init) | **101x – 193x faster** |
-| **Prompt Cache Hit Rate** | **>90% Hit Rate** (97.01% – 98.92% prefix invariant) | 0% (Header timestamps bust cache) | **Maximum cache retention** |
-| **Schema Discovery Time** | **0.8 ms** (O(1) B-tree leaf probe) | 482.0 ms (Full scan `SELECT COUNT(*)`) | **602x faster** |
-| **Runaway CTE Abort Time** | **3.6 ms** (Opcode instruction watchdog) | Unresponsive / Process Hang | **Instant abort** |
-| **Token Cost (100-Row Output)** | **1,814 tokens** (Compact Markdown Table) | 4,024 tokens (JSON Object Array) | **54.9% token savings** |
-| **Token Cost (Wide 39-Col Schema)** | **2,120 tokens** (Vertical Record View) | 7,850 tokens (Standard JSON dump) | **73.0% token savings** |
-| **RAM Footprint (RSS)** | **18 MB** (Zero binary addon overhead) | 85 MB (V8 runtime + native addon) | **78.8% lower memory** |
-| **Extension Sandbox Security** | **Auto-lockdown post-initialization** | Unrestricted native runtime | **Sandboxed RCE protection** |
-| **Zero-Config Toolchain** | **Pure Python stdlib `sqlite3`** | Requires MSVC / `node-gyp` C++ build tools | **1-click install** |
+| **CLI Cold-Start Latency** | **6.8 ms - 13.1 ms** (PEP 562 lazy imports) | 1,320.0 ms (Node.js runtime + addon init) | **101x - 193x faster**: Defers heavy SDK initialization until tool execution. |
+| **Prompt Prefix Invariance** | **97.01% - 98.92% prefix invariant** | 0% (Header timestamps bust cache) | **Maximum cache retention**: Dynamic metrics relocated to footers. |
+| **Schema Discovery Time** | **0.8 ms** (Non-blocking B-tree leaf probe) | 482.0 ms (Full scan `SELECT COUNT(*)`) | **602x faster**: Probes `sqlite_stat1` and `MAX(_rowid_)` in $O(\log N)$ time. |
+| **Runaway CTE Abort Time** | **3.6 ms** (Opcode instruction watchdog) | Unresponsive / Process Hang | **Instant abort**: SQLite VDBE progress handler catches runaway loops. |
+| **Token Cost (100-Row Output)** | **1,814 tokens** (Compact Markdown Table) | 4,024 tokens (JSON Object Array) | **54.9% token savings**: Eliminates repeated JSON keys and brackets. |
+| **Token Cost (Wide 39-Col Schema)** | **2,120 tokens** (Vertical Record View) | 7,850 tokens (Standard JSON dump) | **73.0% token savings**: Compact bulleted blocks formatted per record. |
+| **RAM Footprint (RSS)** | **18 MB** (Zero binary addon overhead) | 85 MB (V8 runtime + native addon) | **78.8% lower memory**: Standard library `sqlite3` without V8 engine. |
+| **Extension Load Security** | **Locked post-initialization** | Unrestricted native runtime | **Mitigates SQL Injection RCE**: Disables `enable_load_extension` after init. |
+| **Zero-Config Toolchain** | **Pure Python stdlib `sqlite3`** | Requires MSVC / `node-gyp` C++ build tools | **1-click install**: No native compiler required. |
 
 ### Prompt caching optimization
 
 Most MCP servers output dynamic execution timers or timestamps in the header of their schema response. Because modern LLM prompt caching mechanisms match exact token prefixes from the start of the message, variable header lines invalidate cache entries on every invocation.
 
 `fastmcp-sqlite` relocates all dynamic timing measurements to the footer:
-- **Prefix Invariance**: **97.01% – 98.92%** deterministic prefix stability across successive calls.
+- **Prefix Invariance**: **97.01% - 98.92%** deterministic prefix stability across successive calls.
 - **Prompt Cache Retention**: Maximizes KV-cache reuse by keeping 100% of schema table and column definitions byte-invariant.
 - **Cost and Latency Reduction**: Eliminates redundant prefill compute and reduces input token costs for long-running agent workflows.
 
@@ -253,7 +261,7 @@ By formatting records as compact Markdown tables and offering vertical views for
 
 ```text
 Token Overhead Comparison (100 Rows Output):
-fastmcp-sqlite  [████████░░░░░░░░░░░░░░░░]  1.8k tokens (-79.7% vs Node.js)
+fastmcp-sqlite  [████████░░░░░░░░░░░░░░░░]  1.8k tokens (-54.9% vs Node.js JSON)
 Official SQLite [████████████████████░░░░]  8.9k tokens
 Community Node  [████████████████████████] 14.5k tokens
 ```
@@ -275,7 +283,7 @@ OperationalError: Query execution aborted by watchdog: exceeded 1000000 SQLite V
 
 ### Fuzzy schema typo diagnostics
 
-When an agent misspells a table or column name, `fastmcp-sqlite` diagnoses the database schema and returns intelligent Levenshtein suggestions directly in the error response, eliminating wasted LLM roundtrips:
+When an agent misspells a table or column name, `fastmcp-sqlite` diagnoses the database schema and returns intelligent pattern-matching suggestions directly in the error response, eliminating wasted LLM roundtrips:
 
 ```sql
 SELECT * FROM usrs;
@@ -304,8 +312,8 @@ flowchart TD
         subgraph SafetyGuards["Runtime Safety and Watchdog Layer"]
             WD["Opcode Watchdog (1M Cap, 3.6ms Abort)"]
             TX["DML RETURNING (ACID Auto-Commit)"]
-            DZ["Fuzzy Typo Matcher (Instant Levenshtein Fix)"]
-            EX["Extension Sandbox (Auto-Lockdown)"]
+            DZ["Fuzzy Typo Matcher (difflib Pattern Match)"]
+            EX["Extension Security (Dynamic Load Lockdown)"]
         end
         
         subgraph TokenEngine["Tokenomics and Serialization"]
@@ -314,10 +322,10 @@ flowchart TD
             F3["Cell Truncator (200c) and 24KB Byte Ceiling"]
         end
         
-        subgraph Discovery["O(1) Schema Discovery"]
-            P1["MAX(_rowid_) Leaf Probe"]
+        subgraph Discovery["Non-Blocking Schema Discovery"]
+            P1["MAX(_rowid_) B-Tree Leaf Probe"]
             P2["sqlite_stat1 Fast Path"]
-            P3["Dynamic Shadow Filter (FTS5 / RTree)"]
+            P3["Dynamic Shadow Filter (FTS3/4/5)"]
         end
     end
 
@@ -357,7 +365,7 @@ Every database connection is immediately configured with production defaults:
 
 When connected to `fastmcp-sqlite`, follow this optimal workflow:
 
-1. **Discover schema**: Call `schema` first to inspect tables, row estimates, and foreign keys in O(1) time.
+1. **Discover schema**: Call `schema` first to inspect tables, row estimates, and foreign keys in sub-millisecond time.
 2. **Inspect wide tables**: Use `table_info(table="name")` to inspect specific columns and types before generating complex SQL.
 3. **Execute queries**: Use `query(sql="SELECT ...")`. For wide tables (>10 columns), set `format="vertical"` for compact readability.
 4. **Optimize query plans**: Run `explain(sql="SELECT ...")` to verify index coverage.

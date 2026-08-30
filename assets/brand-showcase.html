@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>fastmcp-sqlite · Visual Brand Identity &amp; Graphic Design System</title>
+  <style>
+    :root {
+      --bg-void: #050608;
+      --bg-card: #0c0e14;
+      --bg-elevated: #151822;
+      --border: #1e2433;
+      --border-bright: #2f384d;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --emerald: #10b981;
+      --cyan: #00f0ff;
+      --violet: #7c3aed;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Geist Sans', 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', 'Geist Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-void);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding: 40px 24px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 32px;
+      margin-bottom: 48px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--emerald);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); box-shadow: 0 0 8px var(--emerald); }
+
+    h1 {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+    h1 span {
+      background: linear-gradient(135deg, var(--emerald), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.lead {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 800px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin: 48px 0 24px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .artwork-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 40px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      transition: border-color 0.2s;
+    }
+    .artwork-card:hover {
+      border-color: var(--border-bright);
+    }
+
+    .artwork-preview {
+      width: 100%;
+      background: #030406;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .artwork-preview img, .artwork-preview object {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .artwork-info {
+      padding: 24px 32px;
+    }
+    .artwork-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .artwork-name {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .artwork-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: var(--bg-elevated);
+      color: var(--cyan);
+      border: 1px solid var(--border);
+    }
+    .artwork-desc {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .artwork-specs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      background: var(--bg-elevated);
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+    }
+    .spec-item span {
+      display: block;
+      color: var(--text-dim);
+      margin-bottom: 2px;
+    }
+    .spec-item strong {
+      color: var(--text-main);
+    }
+
+    /* Swatches Grid */
+    .swatches {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .swatch {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .swatch-color {
+      height: 64px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .swatch-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+    .swatch-hex { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge"><span class="badge-dot"></span> Brand Identity System v1.0</div>
+      <h1>fastmcp<span>-sqlite</span></h1>
+      <p class="lead">Art Direction, Brand Identity, and Developer Tool Visual Systems. Crafted with pure geometric discipline, Swiss typographic balance, and zero-slop vector precision.</p>
+    </header>
+
+    <!-- Masterwork 1 -->
+    <h2 class="section-title">Concept 1: Sleek Horizontal Brandmark &amp; Banner</h2>
+    <div class="artwork-card">
+      <div class="artwork-preview">
+        <img src="fastmcp-sqlite-banner-horizontal.svg" alt="Concept 1 Banner" width="1000">
+      </div>
+      <div class="artwork-info">
+        <div class="artwork-header">
+          <div class="artwork-name">Sleek Horizontal Brandmark &amp; Header Banner</div>
+          <div class="artwork-tag">1280 × 640 · GitHub Standard</div>
+        </div>
+        <p class="artwork-desc">Engineered for GitHub README hero placement and social preview cards. Features an iconic SQLite cylinder sliced by a neon kinetic lightning bolt, accompanied by technical Geist Mono typography, protocol verification badges, and terminal status indicators.</p>
+        <div class="artwork-specs">
+          <div class="spec-item"><span>Canvas Base</span><strong>#08090D (Deep Zinc)</strong></div>
+          <div class="spec-item"><span>Primary Accent</span><strong>#10B981 (Emerald)</strong></div>
+          <div class="spec-item"><span>Secondary Accent</span><strong>#00F0FF (Electric Cyan)</strong></div>
+          <div class="spec-item"><span>Typography</span><strong>Geist Sans + JetBrains Mono</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Masterwork 2 -->
+    <h2 class="section-title">Concept 2: Swiss Style Minimalist Monogram</h2>
+    <div class="artwork-card">
+      <div class="artwork-preview">
+        <img src="fastmcp-sqlite-monogram-swiss.svg" alt="Concept 2 Swiss Monogram" width="400">
+      </div>
+      <div class="artwork-info">
+        <div class="artwork-header">
+          <div class="artwork-name">Swiss International Typographic Monogram</div>
+          <div class="artwork-tag">512 × 512 · 1:1 Icon Square</div>
+        </div>
+        <p class="artwork-desc">Constructed upon a rigorous 16-module geometric grid. Synthesizes the letterforms 'F' and 'S' with the SQLite feather quill and database disk in negative space. Razor-sharp 45° chamfers, clinical white contrast, and high-density technical coordinate marks.</p>
+        <div class="artwork-specs">
+          <div class="spec-item"><span>Grid Standard</span><strong>8pt Modular Grid</strong></div>
+          <div class="spec-item"><span>Clear Space</span><strong>1.618 Golden Margin</strong></div>
+          <div class="spec-item"><span>Scalability</span><strong>16px Favicon to 1024px App Icon</strong></div>
+          <div class="spec-item"><span>Primary Role</span><strong>Avatar, App Icon, PyPI Package</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Masterwork 3 -->
+    <h2 class="section-title">Concept 3: Artistic Horizon Fluid Gradient Splash</h2>
+    <div class="artwork-card">
+      <div class="artwork-preview">
+        <img src="fastmcp-sqlite-gradient-fluid.svg" alt="Concept 3 Fluid Splash" width="1000">
+      </div>
+      <div class="artwork-info">
+        <div class="artwork-header">
+          <div class="artwork-name">Artistic Horizon Fluid Gradient Splash</div>
+          <div class="artwork-tag">1280 × 720 · 16:9 Cinematic</div>
+        </div>
+        <p class="artwork-desc">Prefect &amp; Modal Labs inspired cosmic horizon gradient. A translucent faceted crystalline database monument radiates internal light across multi-stop nebula waves, orbital token rings, and shimmering spark particles. Represents continuous streaming and bounded tokenomics.</p>
+        <div class="artwork-specs">
+          <div class="spec-item"><span>Color Ramps</span><strong>Cosmic Indigo → Cyan → Emerald</strong></div>
+          <div class="spec-item"><span>Lighting Model</span><strong>Hyper-Glow Prismatic Caustics</strong></div>
+          <div class="spec-item"><span>Metaphor</span><strong>Continuous Token Stream &amp; Crystalline Speed</strong></div>
+          <div class="spec-item"><span>Primary Role</span><strong>Keynote Slides, Marketing &amp; Wallpaper</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Color Palette Tokens -->
+    <h2 class="section-title">Color Tokens &amp; Visual Psychology</h2>
+    <div class="swatches">
+      <div class="swatch">
+        <div class="swatch-color" style="background: #08090d;"></div>
+        <div class="swatch-name">Obsidian Canvas</div>
+        <div class="swatch-hex">#08090D · Surface 0</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background: #10b981;"></div>
+        <div class="swatch-name">Electric Emerald</div>
+        <div class="swatch-hex">#10B981 · Fast Execution</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background: #00f0ff;"></div>
+        <div class="swatch-name">Radiant Cyan</div>
+        <div class="swatch-hex">#00F0FF · MCP Transmission</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background: #7c3aed;"></div>
+        <div class="swatch-name">Quantum Violet</div>
+        <div class="swatch-hex">#7C3AED · Token Ceiling</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background: #f8fafc;"></div>
+        <div class="swatch-name">Clinical White</div>
+        <div class="swatch-hex">#F8FAFC · Primary Ink</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
