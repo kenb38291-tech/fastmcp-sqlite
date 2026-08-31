@@ -15,38 +15,56 @@ try:
 except ImportError:
     try:
         from mcp.server.mcpserver import MCPServer
-
-        class FastMCPAdapter:
-            """Adapter providing FastMCP-compatible interface over MCPServer."""
-
-            def __init__(self, name: str, **kwargs: Any) -> None:
-                self._server = MCPServer(name, **kwargs)
-                self._tools: Dict[str, Any] = {}
-
-            def tool(
-                self,
-                name: Optional[str] = None,
-                description: Optional[str] = None,
-            ) -> Any:
-                def decorator(func: Any) -> Any:
-                    tool_name = name or func.__name__
-                    self._tools[tool_name] = func
-                    if hasattr(self._server, "tool"):
-                        self._server.tool(name=name, description=description)(func)
-                    return func
-
-                return decorator
-
-            def run(self, transport: str = "stdio") -> None:
-                if hasattr(self._server, "run"):
-                    self._server.run(transport=transport)
-
-        ServerFactory = FastMCPAdapter
     except ImportError:
-        raise ImportError(
-            "Could not import FastMCP or MCPServer from 'mcp'. "
-            "Please ensure 'mcp>=1.0.0' is installed."
-        )
+        MCPServer = None  # type: ignore
+
+    class _ToolEntry:
+        """Lightweight container exposing registered tool function."""
+
+        def __init__(self, fn: Any) -> None:
+            self.fn = fn
+
+    class _ToolManager:
+        """Tool manager shim providing FastMCP _tool_manager._tools interface."""
+
+        def __init__(self, tools_dict: Dict[str, Any]) -> None:
+            self._tools_dict = tools_dict
+
+        @property
+        def _tools(self) -> Dict[str, Any]:
+            return {k: _ToolEntry(v) for k, v in self._tools_dict.items()}
+
+    class FastMCPAdapter:
+        """Adapter providing FastMCP-compatible interface over MCPServer."""
+
+        def __init__(self, name: str, **kwargs: Any) -> None:
+            self.name = name
+            self._server = MCPServer(name, **kwargs) if MCPServer else None
+            self._tools: Dict[str, Any] = {}
+
+        @property
+        def _tool_manager(self) -> _ToolManager:
+            return _ToolManager(self._tools)
+
+        def tool(
+            self,
+            name: Optional[str] = None,
+            description: Optional[str] = None,
+        ) -> Any:
+            def decorator(func: Any) -> Any:
+                tool_name = name or func.__name__
+                self._tools[tool_name] = func
+                if self._server and hasattr(self._server, "tool"):
+                    self._server.tool(name=name, description=description)(func)
+                return func
+
+            return decorator
+
+        def run(self, transport: str = "stdio") -> None:
+            if self._server and hasattr(self._server, "run"):
+                self._server.run(transport=transport)
+
+    ServerFactory = FastMCPAdapter
 
 from .engine import SQLiteEngine
 
