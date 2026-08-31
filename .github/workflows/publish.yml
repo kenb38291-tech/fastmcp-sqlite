@@ -62,6 +62,7 @@ jobs:
 
       - name: Generate CycloneDX SBOM with Syft
         uses: anchore/sbom-action@v0
+        continue-on-error: true
         with:
           path: ./dist
           format: cyclonedx-json
@@ -74,6 +75,7 @@ jobs:
 
       - name: Attest SBOM
         uses: actions/attest-sbom@v1
+        continue-on-error: true
         with:
           subject-path: "dist/*.whl"
           sbom-path: dist/sbom.cdx.json
