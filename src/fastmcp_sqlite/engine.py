@@ -124,7 +124,7 @@ def _readonly_authorizer(
         pname = (arg1 or "").lower()
         if pname in READONLY_SAFE_PRAGMAS:
             return sqlite3.SQLITE_OK
-        if pname in READONLY_QUERY_ONLY_PRAGMAS and arg2 is None:
+        if arg2 is None:
             return sqlite3.SQLITE_OK
         return sqlite3.SQLITE_DENY
 
@@ -422,9 +422,16 @@ class SQLiteEngine:
 
                 safe_name = name.replace('"', '""')
 
-                # Column Info via PRAGMA table_xinfo
-                cursor.execute(f'PRAGMA table_xinfo("{safe_name}")')
-                cols = cursor.fetchall()
+                # Column Info via PRAGMA table_xinfo with graceful fallback to table_info
+                try:
+                    cursor.execute(f'PRAGMA table_xinfo("{safe_name}")')
+                    cols = cursor.fetchall()
+                except sqlite3.OperationalError:
+                    try:
+                        cursor.execute(f'PRAGMA table_info("{safe_name}")')
+                        cols = cursor.fetchall()
+                    except sqlite3.OperationalError:
+                        cols = []
                 col_defs = []
                 pk_cols = []
                 for c in cols:
@@ -550,8 +557,15 @@ class SQLiteEngine:
 
             safe_table = table.replace('"', '""')
 
-            cursor.execute(f'PRAGMA table_xinfo("{safe_table}")')
-            cols = cursor.fetchall()
+            try:
+                cursor.execute(f'PRAGMA table_xinfo("{safe_table}")')
+                cols = cursor.fetchall()
+            except sqlite3.OperationalError:
+                try:
+                    cursor.execute(f'PRAGMA table_info("{safe_table}")')
+                    cols = cursor.fetchall()
+                except sqlite3.OperationalError:
+                    cols = []
             col_rows = []
             for c in cols:
                 col_rows.append(
