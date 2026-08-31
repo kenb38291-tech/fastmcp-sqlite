@@ -434,6 +434,13 @@ class SQLiteEngine:
                         cols = []
                 col_defs = []
                 pk_cols = []
+                if not cols and item.get("sql") and "USING " in item["sql"].upper():
+                    match = re.search(r"USING\s+\w+\s*\((.*)\)", item["sql"], re.IGNORECASE | re.DOTALL)
+                    if match:
+                        raw_cols = [c.strip() for c in match.group(1).split(",") if c.strip()]
+                        for cname in raw_cols:
+                            clean_col = cname.split()[0].strip('"`[]')
+                            col_defs.append(f"  - `{clean_col}` (ANY)")
                 for c in cols:
                     col_name = c["name"]
                     col_type = c["type"] or "ANY"
@@ -567,6 +574,15 @@ class SQLiteEngine:
                 except sqlite3.OperationalError:
                     cols = []
             col_rows = []
+            if not cols and tbl.get("sql") and "USING " in tbl["sql"].upper():
+                match = re.search(r"USING\s+\w+\s*\((.*)\)", tbl["sql"], re.IGNORECASE | re.DOTALL)
+                if match:
+                    raw_cols = [c.strip() for c in match.group(1).split(",") if c.strip()]
+                    for idx, cname in enumerate(raw_cols):
+                        clean_col = cname.split()[0].strip('"`[]')
+                        col_rows.append(
+                            f"| {idx} | `{clean_col}` | `ANY` | YES | `NULL` | - |"
+                        )
             for c in cols:
                 col_rows.append(
                     f"| {c['cid']} | `{c['name']}` | `{c['type'] or 'ANY'}` | "
