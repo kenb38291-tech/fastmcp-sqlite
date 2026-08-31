@@ -62,3 +62,7 @@ venv.bak/
 *.db-wal
 *.db-shm
 
+# Design experiments, research archives, and artwork galleries
+assets/experiments/
+
+
