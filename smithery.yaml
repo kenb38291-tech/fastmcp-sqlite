@@ -3,27 +3,59 @@ startCommand:
   configSchema:
     type: object
     properties:
-      db:
+      database:
         type: string
-        description: Absolute path to the SQLite database file (.db, .sqlite, .sqlite3).
-      readOnly:
+        title: "SQLite Database Path"
+        description: "Path to SQLite database file (.db, .sqlite, .sqlite3) or directory. Leave empty for dynamic path mode."
+      readonly:
         type: boolean
-        description: Enable strict read-only mode to block mutating SQL queries.
-        default: true
-      maxRows:
-        type: integer
-        description: Maximum rows returned per query.
-        default: 100
+        title: "Read-Only Enforcement"
+        description: "Strictly enforce read-only queries with PRAGMA query_only = ON."
+        default: false
+      allowedDir:
+        type: string
+        title: "Allowed Root Directory"
+        description: "Zero-Trust filesystem boundary root for databases and export files."
       maxBytes:
         type: integer
-        description: Maximum response payload size in bytes.
+        title: "Max Bytes Output Cap"
+        description: "Maximum payload bytes before truncating (default: 24576)."
         default: 24576
       cellMaxChars:
         type: integer
-        description: Maximum characters per cell before truncation.
+        title: "Max Cell Characters"
+        description: "Maximum characters per cell before truncation (default: 200)."
         default: 200
-  commandLine:
-    - uvx
-    - fastmcp-sqlite
-    - --db
-    - "{{db}}"
+    additionalProperties: false
+  commandFunction: |-
+    (config) => {
+      const args = ['fastmcp-sqlite'];
+      if (config.database && config.database.trim() !== '') {
+        args.push(config.database.trim());
+      }
+      if (config.readonly) {
+        args.push('--read-only');
+      } else {
+        args.push('--allow-write');
+      }
+      if (config.allowedDir && config.allowedDir.trim() !== '') {
+        args.push('--allowed-dir', config.allowedDir.trim());
+      }
+      if (config.maxBytes && config.maxBytes !== 24576) {
+        args.push('--max-bytes', String(config.maxBytes));
+      }
+      if (config.cellMaxChars && config.cellMaxChars !== 200) {
+        args.push('--cell-max-chars', String(config.cellMaxChars));
+      }
+      return {
+        command: 'uvx',
+        args: args,
+        env: {
+          PYTHONUTF8: '1',
+          PYTHONUNBUFFERED: '1'
+        }
+      };
+    }
+exampleConfig:
+  database: "./data/production.db"
+  readonly: true

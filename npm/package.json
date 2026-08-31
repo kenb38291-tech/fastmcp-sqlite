@@ -1,0 +1,30 @@
+{
+  "name": "fastmcp-sqlite",
+  "version": "1.0.0",
+  "description": "Zero-dependency npx bridge runner for fastmcp-sqlite Python MCP Server",
+  "main": "bin/index.js",
+  "bin": {
+    "fastmcp-sqlite": "bin/index.js",
+    "agy-sqlite": "bin/index.js"
+  },
+  "mcpName": "io.github.kenb38291-tech/fastmcp-sqlite",
+  "keywords": [
+    "mcp",
+    "fastmcp",
+    "sqlite",
+    "ai-agent",
+    "claude",
+    "cursor",
+    "llm",
+    "database"
+  ],
+  "author": "kenb38291-tech",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kenb38291-tech/fastmcp-sqlite.git"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

@@ -131,6 +131,21 @@ def _readonly_authorizer(
     return sqlite3.SQLITE_OK
 
 
+def _is_safe_path(path: str, allowed_dir: Optional[str]) -> bool:
+    """Validate that a target path resides strictly inside the allowed root directory."""
+    if not allowed_dir:
+        return True
+    try:
+        norm_path = os.path.normcase(os.path.realpath(os.path.abspath(path)))
+        norm_allowed = os.path.normcase(os.path.realpath(os.path.abspath(allowed_dir)))
+        if norm_path == norm_allowed:
+            return True
+        common = os.path.commonpath([norm_path, norm_allowed])
+        return common == norm_allowed
+    except Exception:
+        return False
+
+
 class SQLiteEngine:
     """Core high-performance SQLite engine with safety and lock hygiene."""
 
@@ -144,6 +159,7 @@ class SQLiteEngine:
         opcode_limit: int = 1_000_000,
         timeout: float = 5.0,
         extensions: Optional[List[str]] = None,
+        allowed_dir: Optional[str] = None,
     ) -> None:
         """Initialize the SQLite engine.
 
@@ -156,12 +172,21 @@ class SQLiteEngine:
             opcode_limit: SQLite opcode instruction limit for runaway query watchdog.
             timeout: Busy timeout in seconds for lock contention.
             extensions: Optional list of paths to loadable SQLite extension libraries.
+            allowed_dir: Optional directory boundary to restrict database and export operations.
         """
+        self.allowed_dir = (
+            os.path.abspath(allowed_dir) if allowed_dir else None
+        )
         self.default_db = (
             os.path.abspath(default_db)
             if (default_db and default_db != ":memory:")
             else default_db
         )
+        if self.default_db and self.default_db != ":memory:" and self.allowed_dir:
+            if not _is_safe_path(self.default_db, self.allowed_dir):
+                raise PermissionError(
+                    f"Access denied: Default database path '{self.default_db}' is outside allowed directory root '{self.allowed_dir}'."
+                )
         self.readonly = readonly
         self.max_rows = max_rows
         self.max_bytes = max_bytes
@@ -181,6 +206,7 @@ class SQLiteEngine:
 
         Raises:
             ValueError: If no database is specified and no default is set.
+            PermissionError: If the path is outside the configured allowed_dir.
             FileNotFoundError: If the specified file does not exist.
         """
         raw_path = db.strip() if db and db.strip() else self.default_db
@@ -193,6 +219,10 @@ class SQLiteEngine:
             return ":memory:"
 
         path = os.path.abspath(raw_path)
+        if self.allowed_dir and not _is_safe_path(path, self.allowed_dir):
+            raise PermissionError(
+                f"Access denied: Database path '{path}' is outside allowed directory root '{self.allowed_dir}'."
+            )
         if not os.path.isfile(path):
             raise FileNotFoundError(f"Database file not found at: {path}")
         return path
@@ -927,6 +957,11 @@ class SQLiteEngine:
             )
 
         target_path = os.path.abspath(target_file)
+        if self.allowed_dir and not _is_safe_path(target_path, self.allowed_dir):
+            return (
+                f"Error: Access denied: Target export file '{target_path}' "
+                f"is outside allowed directory root '{self.allowed_dir}'."
+            )
         parent_dir = os.path.dirname(target_path)
         if parent_dir and not os.path.exists(parent_dir):
             try:
@@ -1044,6 +1079,11 @@ class SQLiteEngine:
             Markdown report of discovered SQLite database files.
         """
         dir_path = os.path.abspath(directory)
+        if self.allowed_dir and not _is_safe_path(dir_path, self.allowed_dir):
+            return (
+                f"Error: Access denied: Directory '{dir_path}' "
+                f"is outside allowed directory root '{self.allowed_dir}'."
+            )
         if not os.path.isdir(dir_path):
             return f"Error: Directory not found: {dir_path}"
 

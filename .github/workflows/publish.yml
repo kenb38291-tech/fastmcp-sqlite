@@ -1,37 +1,194 @@
-name: Publish to PyPI
+name: Global 1-Click Multi-Registry Release Pipeline
 
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+  packages: write
   id-token: write
+  attestations: write
 
 jobs:
-  build-and-publish:
-    name: Build distribution & publish to PyPI
+  # =========================================================================
+  # JOB 1: Test & Lint Matrix Verification (Py3.10 - Py3.14)
+  # =========================================================================
+  test-matrix:
+    name: Pytest Matrix (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Execute Pytest Suite
+        run: python -m pytest -v
+
+  # =========================================================================
+  # JOB 2: Build Wheel, Generate SBOM & Sign SLSA 3 Provenance
+  # =========================================================================
+  build-and-attest:
+    name: Build Wheel & Sign SLSA Attestation
+    needs: [test-matrix]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install build dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install build
-
       - name: Build sdist and wheel
         run: |
+          python -m pip install --upgrade pip build
           python -m build
 
-      - name: Publish package to PyPI
+      - name: Generate CycloneDX SBOM with Syft
+        uses: anchore/sbom-action@v0
+        with:
+          path: ./dist
+          format: cyclonedx-json
+          output-file: dist/sbom.cdx.json
+
+      - name: Attest Build Provenance (SLSA Level 3)
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: "dist/*.whl"
+
+      - name: Attest SBOM
+        uses: actions/attest-sbom@v1
+        with:
+          subject-path: "dist/*.whl"
+          sbom-path: dist/sbom.cdx.json
+
+      - name: Save Wheel Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-dist
+          path: dist/
+
+  # =========================================================================
+  # JOB 3: Publish to PyPI via Trusted Publishing (OIDC)
+  # =========================================================================
+  pypi-publish:
+    name: Publish to PyPI (OIDC)
+    needs: [build-and-attest]
+    runs-on: ubuntu-latest
+    environment: pypi
+    steps:
+      - name: Download Built Packages
+        uses: actions/download-artifact@v4
+        with:
+          name: python-dist
+          path: dist/
+
+      - name: Publish Package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
+
+  # =========================================================================
+  # JOB 4: Publish to Official Model Context Protocol Registry
+  # =========================================================================
+  official-mcp-registry:
+    name: Publish to Official MCP Registry
+    needs: [pypi-publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install mcp-publisher and Publish
+        run: |
+          curl -sSL https://raw.githubusercontent.com/modelcontextprotocol/registry/main/install.sh | bash
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish
+
+  # =========================================================================
+  # JOB 5: Build & Push Multi-Arch GHCR OCI Image
+  # =========================================================================
+  ghcr-publish:
+    name: Build & Push GHCR Multi-Arch Container
+    needs: [test-matrix]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU for Multi-Arch
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ github.event_name == 'release' }}
+
+      - name: Build and Push Multi-Arch Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # =========================================================================
+  # JOB 6: Pack Anthropic Claude Desktop Bundle (.mcpb)
+  # =========================================================================
+  mcpb-bundle:
+    name: Pack Anthropic .mcpb Bundle
+    needs: [test-matrix]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+
+      - name: Pack .mcpb Extension Bundle
+        run: |
+          mkdir -p dist
+          npx -y @anthropic-ai/mcpb pack mcpb dist/fastmcp-sqlite.mcpb
+
+      - name: Upload .mcpb to GitHub Release Assets
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/fastmcp-sqlite.mcpb

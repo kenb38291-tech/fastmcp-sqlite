@@ -1,0 +1,82 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.kenb38291-tech/fastmcp-sqlite",
+  "title": "FastMCP SQLite",
+  "description": "Production-grade, token-optimized FastMCP SQLite Server with O(1) schema discovery, opcode execution watchdog, cell truncation, and fuzzy schema self-healing.",
+  "version": "1.0.0",
+  "repository": {
+    "url": "https://github.com/kenb38291-tech/fastmcp-sqlite",
+    "source": "github"
+  },
+  "websiteUrl": "https://github.com/kenb38291-tech/fastmcp-sqlite",
+  "license": "MIT",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "fastmcp-sqlite",
+      "version": "1.0.0",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "arguments": [
+        {
+          "name": "db_positional",
+          "description": "Optional path to a SQLite database file (.db, .sqlite, .sqlite3) or directory.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "--db",
+          "description": "Path to SQLite database file.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "--read-only",
+          "description": "Enforce strict read-only execution across all database connections via PRAGMA query_only = ON.",
+          "isRequired": false,
+          "format": "boolean"
+        },
+        {
+          "name": "--allow-write",
+          "description": "Allow write operations (disables read-only).",
+          "isRequired": false,
+          "format": "boolean"
+        },
+        {
+          "name": "--allowed-dir",
+          "description": "Root directory boundary to restrict database and export operations (Zero-Trust sandbox).",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "--max-bytes",
+          "description": "Strict UTF-8 byte payload ceiling per query (default: 24576 / 24KB).",
+          "isRequired": false,
+          "format": "number"
+        },
+        {
+          "name": "--cell-max-chars",
+          "description": "Maximum characters per cell before truncation (default: 200).",
+          "isRequired": false,
+          "format": "number"
+        },
+        {
+          "name": "--opcode-limit",
+          "description": "Opcode instruction watchdog limit for runaway query abort (default: 1000000).",
+          "isRequired": false,
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/kenb38291-tech/fastmcp-sqlite:1.0.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

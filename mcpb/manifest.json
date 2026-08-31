@@ -1,0 +1,23 @@
+{
+  "manifest_version": "0.1",
+  "name": "fastmcp-sqlite",
+  "display_name": "FastMCP SQLite",
+  "version": "1.0.0",
+  "description": "High-performance SQLite MCP server with O(1) schema discovery, opcode watchdog protection, and zero-trust path security.",
+  "author": {
+    "name": "kenb38291-tech",
+    "url": "https://github.com/kenb38291-tech"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/kenb38291-tech/fastmcp-sqlite",
+  "server": {
+    "type": "command",
+    "mcp_config": {
+      "command": "uvx",
+      "args": ["fastmcp-sqlite"],
+      "env": {
+        "PYTHONUTF8": "1"
+      }
+    }
+  }
+}

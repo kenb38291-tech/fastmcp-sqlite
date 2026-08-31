@@ -93,6 +93,12 @@ def main(argv: Optional[list[str]] = None) -> None:
         help="Path to SQLite loadable extension shared library (.so, .dylib, .dll)",
     )
     parser.add_argument(
+        "--allowed-dir",
+        type=str,
+        default=None,
+        help="Root directory boundary to restrict database and export operations (Zero-Trust sandbox)",
+    )
+    parser.add_argument(
         "-v",
         "--version",
         action="version",
@@ -124,6 +130,7 @@ def main(argv: Optional[list[str]] = None) -> None:
         opcode_limit=args.opcode_limit,
         timeout=args.timeout,
         extensions=args.extension,
+        allowed_dir=args.allowed_dir,
     )
 
     server.run(transport="stdio")

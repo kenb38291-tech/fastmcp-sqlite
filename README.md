@@ -22,10 +22,12 @@
   <a href="#when-should-you-not-use-fastmcp-sqlite">When NOT to Use</a>
 </p>
 
+<!-- mcp-name: io.github.kenb38291-tech/fastmcp-sqlite -->
+
 <!-- Tier 1: Distribution, Runtime & Test Stability -->
 [![PyPI - Version](https://img.shields.io/pypi/v/fastmcp-sqlite?style=flat-square&color=0066CC&logo=pypi&logoColor=white)](https://pypi.org/project/fastmcp-sqlite/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/fastmcp-sqlite?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/fastmcp-sqlite/)
-[![CI / Tests](https://img.shields.io/github/actions/workflow/status/kenb38291-tech/fastmcp-sqlite/ci.yml?branch=main&style=flat-square&label=tests%20(40%20passed)&logo=github)](https://github.com/kenb38291-tech/fastmcp-sqlite/actions)
+[![CI / Tests](https://img.shields.io/github/actions/workflow/status/kenb38291-tech/fastmcp-sqlite/ci.yml?branch=main&style=flat-square&label=tests%20(128%2B%20passed)&logo=github)](https://github.com/kenb38291-tech/fastmcp-sqlite/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-10b981.svg?style=flat-square)](LICENSE)
 
 <!-- Tier 2: Ergonomics, Tokenomics & Performance -->
@@ -238,10 +240,131 @@ Add to `cline_mcp_settings.json`:
       "command": "uvx",
       "args": ["fastmcp-sqlite", "--db", "/absolute/path/to/database.db", "--allow-write"],
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [
+        "schema",
+        "table_info",
+        "explain",
+        "list_databases",
+        "query"
+      ]
     }
   }
 }
+```
+</details>
+
+<details>
+<summary><strong>VS Code & GitHub Copilot (<code>.vscode/mcp.json</code>)</strong></summary>
+
+```json
+{
+  "servers": {
+    "sqlite": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["fastmcp-sqlite", "--db", "${workspaceFolder}/app.db", "--allow-write"]
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><strong>ByteDance Trae IDE (<code>.trae/mcp.json</code>)</strong></summary>
+
+```json
+{
+  "mcpServers": {
+    "sqlite": {
+      "command": "uvx",
+      "args": ["fastmcp-sqlite", "--db", "./app.db", "--allow-write"]
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><strong>Block Goose CLI (<code>~/.config/goose/config.yaml</code>)</strong></summary>
+
+```yaml
+extensions:
+  sqlite:
+    name: FastMCP SQLite Engine
+    type: stdio
+    cmd: uvx
+    args: ["fastmcp-sqlite", "--db", "/path/to/app.db", "--allow-write"]
+    enabled: true
+    timeout: 300
+```
+</details>
+
+<details>
+<summary><strong>Zed Editor (<code>~/.config/zed/settings.json</code>)</strong></summary>
+
+```json
+{
+  "context_servers": {
+    "sqlite": {
+      "command": {
+        "path": "uvx",
+        "args": ["fastmcp-sqlite", "--db", "/path/to/database.db", "--allow-write"]
+      }
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><strong>LM Studio (Local LLM GUI)</strong></summary>
+
+Under **Program → MCP Servers → Edit `mcp.json`**:
+
+```json
+{
+  "mcpServers": {
+    "sqlite": {
+      "command": "uvx",
+      "args": ["fastmcp-sqlite", "--db", "C:/databases/analytics.db", "--allow-write"]
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><strong>Docker Hardened Sandbox Container</strong></summary>
+
+```json
+{
+  "mcpServers": {
+    "sqlite-docker": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v",
+        "/path/to/data:/data",
+        "ghcr.io/kenb38291-tech/fastmcp-sqlite:latest",
+        "--db",
+        "/data/production.db",
+        "--allowed-dir",
+        "/data",
+        "--allow-write"
+      ]
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><strong>Node.js / npx Bridge Runner (Zero Python Setup)</strong></summary>
+
+```bash
+npx -y fastmcp-sqlite --db /path/to/database.db --allow-write
 ```
 </details>
 
@@ -282,12 +405,13 @@ args = ["fastmcp-sqlite", "--db", "/absolute/path/to/database.db", "--allow-writ
 
 ## MCP Tools Reference
 
-`fastmcp-sqlite` exposes 5 focused, token-budgeted tools (<1.2k system tokens total):
+`fastmcp-sqlite` exposes 6 focused, token-budgeted tools (<1.4k system tokens total):
 
 | Tool | Intent & Action | Parameters | Return Format & Context Budget |
 |---|---|---|---|
 | `schema` | **Non-Blocking Schema Overview**<br>Table listing, column types, foreign keys, and estimated row counts via B-tree leaf inspection ($O(\log N)$) without full table scans. | `db` *(optional)*: Database file path. | Markdown table schema overview. (Deterministic prefix >97%). |
-| `query` | **SQL Execution**<br>Executes arbitrary SQL queries with parameter binding, VDBE opcode watchdog guardrails, and output truncation. | `sql`: SQL statement.<br>`params` *(optional)*: List, dict, or JSON string.<br>`format` *(optional)*: `table`, `vertical`, `json`.<br>`readonly` *(optional)*: Enforce read-only per query. | Markdown table, vertical record view, or JSON (capped at 24KB UTF-8). |
+| `query` | **SQL Execution**<br>Executes SQL queries with parameter binding, VDBE opcode watchdog guardrails, and output truncation. | `sql`: SQL statement.<br>`params` *(optional)*: List, dict, or JSON string.<br>`format` *(optional)*: `table`, `vertical`, `json`.<br>`readonly` *(optional)*: Enforce read-only per query.<br>`cell_max_chars` *(optional)*: Max characters per cell. | Markdown table, vertical record view, or JSON (capped at 24KB UTF-8). |
+| `export_query` | **Streaming Out-of-Band Export**<br>Streams query results directly to local CSV or JSONL disk file with zero context token consumption and $O(1)$ memory. | `sql`: SQL statement.<br>`target_file`: Destination file path.<br>`format` *(optional)*: `csv` or `jsonl`.<br>`params` *(optional)*: Parameter bindings.<br>`db` *(optional)*: Database file path. | Markdown summary with rows exported, file size, and execution latency. |
 | `table_info` | **Deep Table Inspection**<br>Detailed table metadata: columns, data types, nullability, defaults, indexes, triggers, DDL SQL, and estimated rows. | `table`: Target table or view name.<br>`db` *(optional)*: Database file path. | Detailed Markdown table specification. |
 | `explain` | **Query Plan Analysis**<br>Analyzes query execution plans and index utilization via `EXPLAIN QUERY PLAN`. | `sql`: SQL statement.<br>`params` *(optional)*: List, dict, or JSON string.<br>`db` *(optional)*: Database file path. | Tree view of SQLite VDBE query plan. |
 | `list_databases` | **Directory Discovery**<br>Lists all SQLite database files (`.db`, `.sqlite`, `.sqlite3`) within a directory tree. | `directory` *(optional)*: Directory to scan. | List of resolved database paths and file sizes. |
@@ -486,7 +610,7 @@ usage: fastmcp-sqlite [-h] [--db DB] [--name NAME] [--read-only] [--allow-write]
                       [--max-rows MAX_ROWS] [--max-bytes MAX_BYTES]
                       [--cell-max-chars CELL_MAX_CHARS]
                       [--opcode-limit OPCODE_LIMIT] [--timeout TIMEOUT]
-                      [--extension EXTENSION] [-v]
+                      [--extension EXTENSION] [--allowed-dir ALLOWED_DIR] [-v]
                       [db_positional]
 
 Production-Grade Token-Optimized FastMCP SQLite Server
@@ -506,6 +630,7 @@ options:
   --opcode-limit LIMIT  Opcode instruction watchdog limit (default: 1000000)
   --timeout TIMEOUT     SQLite busy timeout in seconds (default: 5.0)
   --extension EXTENSION Path to SQLite loadable extension shared library (.so, .dylib, .dll)
+  --allowed-dir ALLOWED_DIR Root directory boundary to restrict database and export operations (Zero-Trust sandbox)
   -v, --version         Show program's version number and exit
 ```
 
@@ -516,7 +641,7 @@ options:
 Verify all benchmark metrics and architectural invariants locally using `pytest` and `hyperfine`:
 
 ```bash
-# Run the complete test suite (40 passed tests)
+# Run the complete test suite (128+ passed tests)
 python -m pytest -v
 
 # Verify sub-20ms CLI cold-start latency (PEP 562 vs eager import)
