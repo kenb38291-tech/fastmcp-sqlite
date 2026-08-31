@@ -24,6 +24,123 @@ from .formatters import (
 )
 
 
+READONLY_SAFE_PRAGMAS = {
+    "table_info",
+    "table_xinfo",
+    "foreign_key_list",
+    "foreign_key_check",
+    "index_list",
+    "index_info",
+    "index_xinfo",
+    "database_list",
+    "collation_list",
+    "compile_options",
+    "integrity_check",
+    "quick_check",
+    "schema_version",
+    "user_version",
+    "data_version",
+    "freelist_count",
+    "page_count",
+    "page_size",
+    "max_page_count",
+    "table_list",
+    "stats",
+    "encoding",
+}
+
+READONLY_QUERY_ONLY_PRAGMAS = {
+    "busy_timeout",
+    "cache_size",
+    "cache_spill",
+    "case_sensitive_like",
+    "defer_foreign_keys",
+    "foreign_keys",
+    "hard_heap_limit",
+    "journal_mode",
+    "locking_mode",
+    "mmap_size",
+    "query_only",
+    "recursive_triggers",
+    "secure_delete",
+    "soft_heap_limit",
+    "synchronous",
+    "temp_store",
+    "threads",
+}
+
+
+SHADOW_TABLE_SUFFIXES = (
+    "_node",
+    "_rowid",
+    "_parent",
+    "_segments",
+    "_segdir",
+    "_stat",
+    "_data",
+    "_idx",
+    "_content",
+    "_docsize",
+    "_config",
+)
+
+
+def _readonly_authorizer(
+    action_code: int,
+    arg1: Optional[str],
+    arg2: Optional[str],
+    db_name: Optional[str],
+    trigger_name: Optional[str],
+) -> int:
+    """SQLite C-Core Authorizer callback to enforce strict sandbox read-only AST constraints."""
+    if action_code in (
+        sqlite3.SQLITE_INSERT,
+        sqlite3.SQLITE_UPDATE,
+        sqlite3.SQLITE_DELETE,
+    ):
+        if arg1 and any(arg1.endswith(sfx) for sfx in SHADOW_TABLE_SUFFIXES):
+            return sqlite3.SQLITE_OK
+        return sqlite3.SQLITE_DENY
+
+    deny_actions = {
+        sqlite3.SQLITE_ATTACH,
+        sqlite3.SQLITE_DETACH,
+        sqlite3.SQLITE_CREATE_TABLE,
+        sqlite3.SQLITE_DROP_TABLE,
+        sqlite3.SQLITE_ALTER_TABLE,
+        sqlite3.SQLITE_CREATE_INDEX,
+        sqlite3.SQLITE_DROP_INDEX,
+        sqlite3.SQLITE_CREATE_VIEW,
+        sqlite3.SQLITE_DROP_VIEW,
+        sqlite3.SQLITE_CREATE_TRIGGER,
+        sqlite3.SQLITE_DROP_TRIGGER,
+        sqlite3.SQLITE_CREATE_VTABLE,
+        sqlite3.SQLITE_DROP_VTABLE,
+        sqlite3.SQLITE_CREATE_TEMP_TABLE,
+        sqlite3.SQLITE_DROP_TEMP_TABLE,
+        sqlite3.SQLITE_CREATE_TEMP_INDEX,
+        sqlite3.SQLITE_DROP_TEMP_INDEX,
+        sqlite3.SQLITE_CREATE_TEMP_VIEW,
+        sqlite3.SQLITE_DROP_TEMP_VIEW,
+        sqlite3.SQLITE_CREATE_TEMP_TRIGGER,
+        sqlite3.SQLITE_DROP_TEMP_TRIGGER,
+        sqlite3.SQLITE_SAVEPOINT,
+        sqlite3.SQLITE_REINDEX,
+    }
+    if action_code in deny_actions:
+        return sqlite3.SQLITE_DENY
+
+    if action_code == sqlite3.SQLITE_PRAGMA:
+        pname = (arg1 or "").lower()
+        if pname in READONLY_SAFE_PRAGMAS:
+            return sqlite3.SQLITE_OK
+        if pname in READONLY_QUERY_ONLY_PRAGMAS and arg2 is None:
+            return sqlite3.SQLITE_OK
+        return sqlite3.SQLITE_DENY
+
+    return sqlite3.SQLITE_OK
+
+
 class SQLiteEngine:
     """Core high-performance SQLite engine with safety and lock hygiene."""
 
@@ -127,12 +244,14 @@ class SQLiteEngine:
         cursor.execute("PRAGMA mmap_size = 268435456;")  # 256MB MMAP
         cursor.execute("PRAGMA cache_size = -64000;")  # 64MB Page Cache
         cursor.execute("PRAGMA temp_store = MEMORY;")
+        cursor.execute("PRAGMA foreign_keys = ON;")
 
         if readonly:
             try:
                 cursor.execute("PRAGMA query_only = ON;")
             except sqlite3.OperationalError:
                 pass
+            conn.set_authorizer(_readonly_authorizer)
 
         cursor.close()
 
@@ -206,7 +325,8 @@ class SQLiteEngine:
 
         # 3. O(1) Fast MAX(_rowid_) index lookup
         try:
-            cursor.execute(f'SELECT MAX(_rowid_) FROM "{table_name}"')
+            safe_name = table_name.replace('"', '""')
+            cursor.execute(f'SELECT MAX(_rowid_) FROM "{safe_name}"')
             result = cursor.fetchone()
             if result is None or result[0] is None:
                 return "0"
@@ -262,6 +382,7 @@ class SQLiteEngine:
             shadow_suffixes = (
                 "_data", "_idx", "_content", "_docsize", "_config",
                 "_segments", "_segdir", "_stat",
+                "_node", "_rowid", "_parent",
             )
             shadow_names = {
                 f"{vt}{sfx}"
@@ -279,8 +400,10 @@ class SQLiteEngine:
                 is_view = itype == "view"
                 est_rows = self.get_estimated_row_count(cursor, name, is_view)
 
+                safe_name = name.replace('"', '""')
+
                 # Column Info via PRAGMA table_xinfo
-                cursor.execute(f'PRAGMA table_xinfo("{name}")')
+                cursor.execute(f'PRAGMA table_xinfo("{safe_name}")')
                 cols = cursor.fetchall()
                 col_defs = []
                 pk_cols = []
@@ -304,7 +427,7 @@ class SQLiteEngine:
                 # Foreign Keys
                 fk_defs = []
                 try:
-                    cursor.execute(f'PRAGMA foreign_key_list("{name}")')
+                    cursor.execute(f'PRAGMA foreign_key_list("{safe_name}")')
                     fks = cursor.fetchall()
                     for fk in fks:
                         fk_defs.append(
@@ -316,7 +439,7 @@ class SQLiteEngine:
                 # Indexes
                 idx_defs = []
                 try:
-                    cursor.execute(f'PRAGMA index_list("{name}")')
+                    cursor.execute(f'PRAGMA index_list("{safe_name}")')
                     indexes = cursor.fetchall()
                     for idx in indexes:
                         idx_name = idx["name"]
@@ -405,7 +528,9 @@ class SQLiteEngine:
             is_view = itype == "view"
             est_rows = self.get_estimated_row_count(cursor, table, is_view)
 
-            cursor.execute(f'PRAGMA table_xinfo("{table}")')
+            safe_table = table.replace('"', '""')
+
+            cursor.execute(f'PRAGMA table_xinfo("{safe_table}")')
             cols = cursor.fetchall()
             col_rows = []
             for c in cols:
@@ -416,7 +541,7 @@ class SQLiteEngine:
                     f"{c['pk'] if c['pk'] > 0 else '-'} |"
                 )
 
-            cursor.execute(f'PRAGMA foreign_key_list("{table}")')
+            cursor.execute(f'PRAGMA foreign_key_list("{safe_table}")')
             fks = cursor.fetchall()
             fk_rows = []
             for fk in fks:
@@ -424,12 +549,13 @@ class SQLiteEngine:
                     f"| `{fk['from']}` | `{fk['table']}({fk['to']})` | {fk['on_update']} | {fk['on_delete']} |"
                 )
 
-            cursor.execute(f'PRAGMA index_list("{table}")')
+            cursor.execute(f'PRAGMA index_list("{safe_table}")')
             indexes = cursor.fetchall()
             idx_rows = []
             for idx in indexes:
                 idx_name = idx["name"]
-                cursor.execute(f'PRAGMA index_info("{idx_name}")')
+                safe_idx = idx_name.replace('"', '""')
+                cursor.execute(f'PRAGMA index_info("{safe_idx}")')
                 idx_cols = [r["name"] for r in cursor.fetchall()]
                 idx_rows.append(
                     f"| `{idx_name}` | {'YES' if idx['unique'] else 'NO'} | {', '.join(idx_cols)} |"
@@ -543,6 +669,7 @@ class SQLiteEngine:
         db: Optional[str] = None,
         readonly: Optional[bool] = None,
         format: str = "table",
+        cell_max_chars: Optional[int] = None,
     ) -> str:
         """Execute a SQL query with parameter binding, formatting & watchdog.
 
@@ -552,6 +679,7 @@ class SQLiteEngine:
             db: Optional path to database file.
             readonly: Override read-only security mode.
             format: Output format ('table', 'vertical', or 'json').
+            cell_max_chars: Optional cell character limit override (0 for unlimited).
 
         Returns:
             Serialized query results or error message with diagnostic hints.
@@ -563,6 +691,9 @@ class SQLiteEngine:
             return f"Error: {e}"
 
         is_readonly = self.readonly if readonly is None else readonly
+        effective_cell_max_chars = (
+            self.cell_max_chars if cell_max_chars is None else cell_max_chars
+        )
 
         clean_sql = sql.strip()
         if not clean_sql:
@@ -640,20 +771,25 @@ class SQLiteEngine:
 
             if fmt_lower == "json":
                 return format_json(
-                    col_names, display_rows, summary_header=summary_header
+                    col_names,
+                    display_rows,
+                    cell_max_chars=effective_cell_max_chars,
+                    max_bytes=self.max_bytes,
+                    summary_header=summary_header,
                 )
             elif fmt_lower == "vertical":
                 return format_vertical_view(
                     col_names,
                     display_rows,
-                    cell_max_chars=self.cell_max_chars,
+                    cell_max_chars=effective_cell_max_chars,
+                    max_bytes=self.max_bytes,
                     summary_header=summary_header,
                 )
             else:
                 return format_markdown_table(
                     col_names,
                     display_rows,
-                    cell_max_chars=self.cell_max_chars,
+                    cell_max_chars=effective_cell_max_chars,
                     max_bytes=self.max_bytes,
                     summary_header=summary_header,
                 )
@@ -683,6 +819,14 @@ class SQLiteEngine:
                 except Exception:
                     pass
             return f"SQLite ProgrammingError (Parameter/Syntax): {pe}"
+        except sqlite3.DatabaseError as de:
+            if not is_readonly:
+                try:
+                    if conn.in_transaction:
+                        conn.rollback()
+                except Exception:
+                    pass
+            return f"SQLite DatabaseError: {de}"
         except Exception as e:
             if not is_readonly:
                 try:
@@ -750,6 +894,152 @@ class SQLiteEngine:
             return f"Explain OperationalError: {err_msg}"
         except Exception as e:
             return f"Explain Error: {e}"
+        finally:
+            conn.close()
+
+    def export_query(
+        self,
+        sql: str,
+        target_file: str,
+        format: str = "csv",
+        params: Optional[
+            Union[List[Any], Dict[str, Any], Tuple[Any, ...], str]
+        ] = None,
+        db: Optional[str] = None,
+    ) -> str:
+        """Execute query and stream results directly to a local file (CSV or JSONL) with zero context token consumption.
+
+        Args:
+            sql: SQL query statement to execute.
+            target_file: Destination file path on the local filesystem.
+            format: Export file format ('csv' or 'jsonl', default: 'csv').
+            params: Optional query parameter bindings.
+            db: Optional database path.
+
+        Returns:
+            Markdown summary containing row count, file size, and execution latency.
+        """
+        t0 = time.perf_counter()
+        try:
+            db_path = self.resolve_db_path(db)
+        except Exception as e:
+            return f"Error: {e}"
+
+        clean_sql = sql.strip()
+        if not clean_sql:
+            return "Error: Empty SQL query provided."
+
+        fmt_lower = format.strip().lower() if format else "csv"
+        if fmt_lower not in ("csv", "jsonl"):
+            return (
+                f"Error: Unsupported export format '{format}'. "
+                f"Allowed export formats are 'csv' and 'jsonl'."
+            )
+
+        target_path = os.path.abspath(target_file)
+        parent_dir = os.path.dirname(target_path)
+        if parent_dir and not os.path.exists(parent_dir):
+            try:
+                os.makedirs(parent_dir, exist_ok=True)
+            except Exception as e:
+                return f"Error: Failed to create target directory '{parent_dir}': {e}"
+
+        norm_params = self._normalize_params(params)
+
+        try:
+            conn = self.get_connection(db_path, readonly=True)
+        except Exception as e:
+            return f"Error connecting to database: {e}"
+
+        cursor = conn.cursor()
+        try:
+            if norm_params is not None:
+                cursor.execute(sql, norm_params)
+            else:
+                cursor.execute(sql)
+
+            if cursor.description is None:
+                return "Error: Statement produced no result rows to export."
+
+            col_names = [col[0] for col in cursor.description]
+            total_rows = 0
+
+            if fmt_lower == "csv":
+                import csv
+
+                with open(target_path, "w", newline="", encoding="utf-8") as f:
+                    writer = csv.writer(f)
+                    writer.writerow(col_names)
+                    while True:
+                        batch = cursor.fetchmany(1000)
+                        if not batch:
+                            break
+                        for row in batch:
+                            writer.writerow(
+                                [
+                                    f"<BLOB {len(cell)}B>"
+                                    if isinstance(cell, bytes)
+                                    else cell
+                                    for cell in row
+                                ]
+                            )
+                        total_rows += len(batch)
+            else:
+                # jsonl format
+                with open(target_path, "w", encoding="utf-8") as f:
+                    while True:
+                        batch = cursor.fetchmany(1000)
+                        if not batch:
+                            break
+                        for row in batch:
+                            row_dict = {}
+                            for col_name, cell in zip(col_names, row):
+                                if isinstance(cell, bytes):
+                                    row_dict[col_name] = f"<BLOB {len(cell)}B>"
+                                else:
+                                    row_dict[col_name] = cell
+                            f.write(
+                                json.dumps(
+                                    row_dict,
+                                    ensure_ascii=False,
+                                    default=str,
+                                )
+                                + "\n"
+                            )
+                        total_rows += len(batch)
+
+            elapsed_ms = (time.perf_counter() - t0) * 1000
+            file_size_bytes = (
+                os.path.getsize(target_path) if os.path.exists(target_path) else 0
+            )
+            file_size_mb = file_size_bytes / (1024 * 1024)
+
+            return (
+                f"# Query Export Successful\n"
+                f"- **Destination File:** `{target_path}`\n"
+                f"- **Format:** `{fmt_lower.upper()}`\n"
+                f"- **Rows Exported:** {total_rows:,}\n"
+                f"- **File Size:** {file_size_mb:.2f} MB ({file_size_bytes:,} bytes)\n"
+                f"- **Execution Time:** {elapsed_ms:.2f} ms"
+            )
+
+        except sqlite3.OperationalError as oe:
+            if "interrupted" in str(oe).lower():
+                return (
+                    f"Error: Export aborted by execution watchdog "
+                    f"(exceeded CPU opcode budget of {self.opcode_limit:,} instructions)."
+                )
+            err_msg = str(oe)
+            hint = get_fuzzy_schema_hint(conn, err_msg, sql)
+            if hint:
+                return f"SQLite OperationalError: {err_msg}\nSuggestion: {hint}"
+            return f"SQLite OperationalError: {err_msg}"
+        except sqlite3.ProgrammingError as pe:
+            return f"SQLite ProgrammingError: {pe}"
+        except sqlite3.DatabaseError as de:
+            return f"SQLite DatabaseError: {de}"
+        except Exception as e:
+            return f"Export Error: {type(e).__name__}: {e}"
         finally:
             conn.close()
 

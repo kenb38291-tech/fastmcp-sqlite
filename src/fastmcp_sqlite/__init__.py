@@ -27,4 +27,8 @@ def main(argv: Optional[List[str]] = None) -> None:
     _cli_main(argv)
 
 
+def __dir__() -> List[str]:
+    return sorted(__all__)
+
+
 __all__ = ["SQLiteEngine", "create_server", "main", "__version__"]

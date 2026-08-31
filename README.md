@@ -8,16 +8,16 @@
 
 # fastmcp-sqlite
 
-**The High-Performance, Token-Optimized SQLite Model Context Protocol Server Mathematically Engineered for AI Coding Agents.**  
-*Zero Native C++ Compilers · Sub-15ms Cold Start · 98.9% Prompt Cache Prefix Invariance · 3.6ms Runaway Watchdog · O(1) Non-Blocking Schema Discovery*
+**A High-Performance, Token-Optimized SQLite Model Context Protocol (MCP) Server Built for AI Coding Agents.**  
+*Zero Native Build Toolchain · Sub-15ms Cold Start · Prompt Cache Prefix Stability (>97%) · VDBE Opcode Watchdog · Fast Non-Blocking Schema Discovery*
 
 <p align="center">
-  <a href="#the-pitch">The Pitch</a> •
+  <a href="#overview-and-design-principles">Design Principles</a> •
   <a href="#quickstart">Quickstart</a> •
   <a href="#-1-prompt-ai-agent-bootstrapper">🤖 Agent Prompt</a> •
   <a href="#multi-agent-client-configuration">Client Matrix</a> •
   <a href="#mcp-tools-reference">Tools Reference</a> •
-  <a href="#performance-and-tokenomics">Benchmarks & ROI</a> •
+  <a href="#performance-and-tokenomics">Benchmarks & Tokenomics</a> •
   <a href="#architecture">Architecture</a> •
   <a href="#when-should-you-not-use-fastmcp-sqlite">When NOT to Use</a>
 </p>
@@ -29,8 +29,8 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-10b981.svg?style=flat-square)](LICENSE)
 
 <!-- Tier 2: Ergonomics, Tokenomics & Performance -->
-[![Zero Native Addons](https://img.shields.io/badge/dependencies-zero_native_compiler-06b6d4?style=flat-square)](#the-pitch)
-[![Prompt Cache Invariance](https://img.shields.io/badge/prompt_caching-98.9%25_prefix_invariant-f59e0b?style=flat-square)](#prompt-caching-optimization)
+[![Zero Native Addons](https://img.shields.io/badge/dependencies-zero_native_compiler-06b6d4?style=flat-square)](#overview-and-design-principles)
+[![Prompt Cache Invariance](https://img.shields.io/badge/prompt_caching->97%25_prefix_invariant-f59e0b?style=flat-square)](#prompt-caching-optimization)
 [![Token Savings](https://img.shields.io/badge/tokenomics-54.9%25_to_73.0%25_savings-8b5cf6?style=flat-square)](#token-consumption-comparison)
 [![Cold-Start Latency](https://img.shields.io/badge/cold--start-6.8ms_(193x_faster)-10b981?style=flat-square)](#empirical-benchmark-comparison)
 
@@ -42,50 +42,54 @@
 
 ---
 
-## The Pitch
+## Overview and Design Principles
 
-Most SQLite MCP servers in the ecosystem are built as simple wrappers over Node.js native bindings (`better-sqlite3`), introducing four severe failure modes into AI agent environments:
+Many SQLite Model Context Protocol (MCP) servers in the ecosystem rely on Node.js native addons (`better-sqlite3`) or unbounded serialization formats, introducing distinct operational challenges in autonomous AI agent environments:
 
-1. **The Native Compiler Hell:** Requiring MSVC C++ Build Tools or `node-gyp` causes 30%+ installation failure rates across Windows, minimal containers, and locked-down developer environments.
-2. **Context Window Hemorrhage:** Dumping raw JSON object arrays with repetitive dictionary keys burns 4,000 – 14,500 tokens for just 100 rows, exhausting LLM context budgets.
-3. **Prompt Cache Annihilation:** Prefixing responses with dynamic execution timestamps or timers invalidates KV-cache prefix matching on Claude 3.7, GPT-4o, and Gemini 2.0, inflating prefill latency and API costs.
-4. **Runaway CPU Freezes & Lock Deadlocks:** Blocking `SELECT COUNT(*)` disk scans on large databases lock transactions, while unconstrained recursive CTE queries (`WITH RECURSIVE`) freeze agent stdio processes indefinitely.
+1. **Native Build Toolchain Overhead:** Relying on `node-gyp` or platform-specific C++ build toolchains (such as MSVC on Windows) introduces installation friction in minimal container environments, restricted CI/CD runners, and locked-down developer workstations.
+2. **Context Token Inefficiency:** Formatting query results as verbose JSON object arrays repeats schema keys for every record, consuming 2.2x to 3.7x more context tokens than compact tabular representations.
+3. **Prompt Cache Invalidation:** Injecting dynamic execution timestamps or metrics into response headers alters the message prefix, preventing KV-cache reuse on Claude, GPT-4o, and Gemini architectures.
+4. **Unbounded Query Execution:** Executing full `SELECT COUNT(*)` table scans on multi-gigabyte databases creates prolonged disk read locks, while unconstrained recursive Common Table Expressions (`WITH RECURSIVE`) or Cartesian joins can stall agent stdio subprocesses.
 
-**`fastmcp-sqlite` is purpose-built as high-assurance "Runtime Armor" for AI coding agents.** Built strictly on Python's standard library `sqlite3` and the official `mcp` SDK, it delivers sub-millisecond $O(1)$ schema discovery, hardware-level VDBE opcode watchdog protection, strict multibyte UTF-8 byte ceilings (24KB), and deterministic prompt caching prefix stability (>97%).
+**`fastmcp-sqlite` addresses these challenges through a lightweight, standard-library architecture:**
+- **Zero Native Build Dependencies:** Pure Python implementation using the standard library `sqlite3` and the official `mcp` SDK, eliminating C/C++ compilation requirements.
+- **Non-Blocking Schema Probing:** Inspects `sqlite_stat1` and performs rightmost Table B-Tree leaf seeks (`MAX(_rowid_)`) in $O(\log N)$ time, avoiding sequential disk scans.
+- **VDBE Opcode Watchdog:** Employs SQLite's `sqlite3_progress_handler` bytecode instruction counter to halt runaway recursive queries within milliseconds without freezing the agent process.
+- **Prefix-Stable Serialization:** Relocates execution timing metrics strictly to response footers, preserving >97% byte invariance across schema inspections for prompt cache retention.
+- **Token-Budgeted Serialization:** Provides compact GitHub-flavored Markdown tables, vertical record inspection for wide schemas, 200-character cell truncation, and a 24KB UTF-8 payload ceiling.
 
 ```text
-┌─── MODEL CONTEXT PROTOCOL: AI AGENT RUNTIME INTERACTION TRACE ───────────────────────────┐
+┌─── MODEL CONTEXT PROTOCOL: INTERACTION TRACE ─────────────────────────────────────────────┐
 │                                                                                          │
-│  🤖 AI AGENT (Claude 3.7 / Cursor / Antigravity)                                         │
+│  🤖 AI AGENT (Claude / Cursor / Antigravity / Windsurf / Cline)                          │
 │  └─▶ Tool Call: schema(db="production.db")                                               │
 │                                                                                          │
-│  ⚡ fastmcp-sqlite Engine (Non-Blocking O(1) Discovery in 0.82 ms)                       │
+│  ⚡ fastmcp-sqlite Engine (Non-Blocking B-Tree Leaf Probe: 0.82 ms)                       │
 │  ┌────────────────────────────────────────────────────────────────────────────────────┐  │
 │  │ # SQLite Schema Overview: production.db (400 MB, WAL Mode, 256MB MMAP)             │  │
 │  │ | Table Name | Type  | Columns | Est. Rows   | Primary Key | Foreign Keys          |  │
 │  │ | :--------- | :---- | :-----: | :---------- | :---------- | :-------------------- |  │
 │  │ | `users`    | table |   12    | ~2,500,000  | id (INTEGER)| None                  |  │
 │  │ | `events`   | table |    8    | ~2,070,000  | id (INTEGER)| `user_id` -> users.id |  │
-│  │ *Discovery Latency: 0.82 ms (O(1) Leaf Probe: MAX(_rowid_) | 12 FTS5 Shadows Hidden)*│  │
+│  │ *Discovery Latency: 0.82 ms (B-Tree Leaf Probe: MAX(_rowid_) | 12 Shadows Hidden)*   │  │
 │  └────────────────────────────────────────────────────────────────────────────────────┘  │
 │                                                                                          │
-│  🤖 AI AGENT (Generated Typo in SQL: `SELECT user_nam, emal FROM users`)                 │
-│  └─▶ Tool Call: query(sql="SELECT user_nam, emal FROM users")                            │
+│  🤖 AI AGENT (Typo in SQL Query: `SELECT user_nam FROM users`)                           │
+│  └─▶ Tool Call: query(sql="SELECT user_nam FROM users")                                  │
 │                                                                                          │
-│  💡 Self-Healing Schema Diagnostics (<1.2 ms via difflib)                                │
+│  💡 Schema Diagnostics (<1.2 ms via difflib)                                             │
 │  ┌────────────────────────────────────────────────────────────────────────────────────┐  │
 │  │ SQLite OperationalError: no such column: user_nam                                  │  │
 │  │ └─ Suggestion: Column 'user_nam' does not exist. Did you mean: `username`?          │  │
-│  │ └─ Suggestion: Column 'emal' does not exist. Did you mean: `email`?                 │  │
 │  └────────────────────────────────────────────────────────────────────────────────────┘  │
 │                                                                                          │
-│  🤖 AI AGENT (Runaway Accidental Cartesian / Recursive CTE Explosion)                    │
+│  🤖 AI AGENT (Runaway Accidental Cartesian / Recursive CTE Query)                        │
 │  └─▶ Tool Call: query(sql="WITH RECURSIVE loop(n) AS (SELECT 1 UNION ALL...)")           │
 │                                                                                          │
-│  🛑 Hardware Opcode Watchdog Interruption (3.6 ms)                                       │
+│  🛑 VDBE Opcode Watchdog Interruption (3.6 ms)                                           │
 │  ┌────────────────────────────────────────────────────────────────────────────────────┐  │
 │  │ OperationalError: Query execution aborted by watchdog: exceeded 1,000,000 opcodes.  │  │
-│  │ └─ Zero CPU freeze · Zero agent timeout · Zero memory leakage                       │  │
+│  │ └─ Execution halted gracefully · Zero process hang · Transaction rolled back       │  │
 │  └────────────────────────────────────────────────────────────────────────────────────┘  │
 │                                                                                          │
 └──────────────────────────────────────────────────────────────────────────────────────────┘
@@ -139,14 +143,18 @@ Please inspect my workspace for any SQLite database files (*.db, *.sqlite, *.sql
 
 ## Multi-Agent Client Configuration
 
-Connect `fastmcp-sqlite` to your AI coding assistant with 1-click copyable configuration blocks:
+Connect `fastmcp-sqlite` to your AI coding assistant using the configuration blocks below:
+
+> [!IMPORTANT]
+> **Windows Path Formatting:** In JSON configuration files on Windows, use forward slashes (e.g., `"C:/path/to/database.db"`) or escaped backslashes (`"C:\\path\\to\\database.db"`).  
+> **Path Resolution:** Providing an absolute path guarantees reliable database resolution across all client environments.
 
 <details open>
 <summary><strong>Claude Desktop (<code>claude_desktop_config.json</code>)</strong></summary>
 
-Location:
+Configuration file location:
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json` (or via **Claude Settings → Developer → Edit Config**)
 - **Linux**: `~/.config/Claude/claude_desktop_config.json`
 
 ```json
@@ -154,15 +162,14 @@ Location:
   "mcpServers": {
     "sqlite": {
       "command": "uvx",
-      "args": ["fastmcp-sqlite", "--db", "/absolute/path/to/database.db"]
+      "args": ["fastmcp-sqlite", "--db", "/absolute/path/to/database.db", "--allow-write"]
     }
   }
 }
 ```
 
 > [!TIP]
-> To permit write queries (`INSERT`, `UPDATE`, `DELETE`), append `"--allow-write"` to the `args` list.  
-> On Windows, use forward slashes (e.g. `"C:/path/to/database.db"`) or escaped backslashes (`"C:\\path\\to\\database.db"`).
+> **Windows Store / MSIX Virtualization Note:** If Claude Desktop was installed via the Windows Store package, Windows may virtualize the configuration path to `%LOCALAPPDATA%\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude_desktop_config.json`. Opening the file via **Claude Settings → Developer → Edit Config** always opens the active configuration.
 </details>
 
 <details>
@@ -175,11 +182,14 @@ Add to your project root `.cursor/mcp.json` or configure under **Cursor Settings
   "mcpServers": {
     "sqlite": {
       "command": "uvx",
-      "args": ["fastmcp-sqlite", "--db", "${workspaceFolder}/data/app.db", "--allow-write"]
+      "args": ["fastmcp-sqlite", "--db", "/absolute/path/to/data/app.db", "--allow-write"]
     }
   }
 }
 ```
+
+> [!NOTE]
+> Cursor executes MCP servers with the project workspace root as the current working directory. You can specify a relative path (e.g., `"data/app.db"`) or an absolute path.
 </details>
 
 <details>
@@ -192,7 +202,7 @@ Add to `~/.gemini/antigravity/mcp_config.json` or project `.gemini/mcp_config.js
   "mcpServers": {
     "sqlite": {
       "command": "uvx",
-      "args": ["fastmcp-sqlite", "--db", "${workspaceRoot}/database.db", "--allow-write"]
+      "args": ["fastmcp-sqlite", "--db", "${workspaceFolder}/database.db", "--allow-write"]
     }
   }
 }
@@ -202,7 +212,7 @@ Add to `~/.gemini/antigravity/mcp_config.json` or project `.gemini/mcp_config.js
 <details>
 <summary><strong>Windsurf IDE (<code>mcp_config.json</code>)</strong></summary>
 
-Add to `~/.codeium/windsurf/mcp_config.json`:
+Add to `~/.codeium/windsurf/mcp_config.json` (or `%USERPROFILE%\.codeium\windsurf\mcp_config.json` on Windows):
 
 ```json
 {
@@ -241,7 +251,7 @@ Add to `cline_mcp_settings.json`:
 Register directly from your terminal:
 
 ```bash
-claude mcp add --transport stdio sqlite -- uvx fastmcp-sqlite --db ./project.db --allow-write
+claude mcp add sqlite -- uvx fastmcp-sqlite --db /absolute/path/to/project.db --allow-write
 ```
 </details>
 
@@ -276,11 +286,11 @@ args = ["fastmcp-sqlite", "--db", "/absolute/path/to/database.db", "--allow-writ
 
 | Tool | Intent & Action | Parameters | Return Format & Context Budget |
 |---|---|---|---|
-| `schema` | **O(1) Schema Overview**<br>Instant table listing, column types, foreign keys, and estimated row counts without full table scans. | `db` *(optional)*: Database file path. | Markdown table schema overview. (Deterministic prefix >97%). |
-| `query` | **SQL Execution**<br>Executes arbitrary SQL queries with parameter binding, watchdog guardrails, and output truncation. | `sql`: SQL statement.<br>`params` *(optional)*: List, dict, or JSON string.<br>`format` *(optional)*: `table`, `vertical`, `json`.<br>`readonly` *(optional)*: Enforce read-only per query. | Markdown table, vertical record view, or JSON (capped at 24KB UTF-8). |
-| `table_info` | **Deep Table Inspection**<br>Detailed table metadata: columns, data types, constraints, indexes, triggers, DDL SQL, and row count. | `table`: Target table or view name.<br>`db` *(optional)*: Database file path. | Detailed Markdown table specification. |
-| `explain` | **Query Plan Analysis**<br>Analyzes query performance and index utilization via `EXPLAIN QUERY PLAN`. | `sql`: SQL statement.<br>`params` *(optional)*: List, dict, or JSON string.<br>`db` *(optional)*: Database file path. | Tree view of SQLite VDBE query plan. |
-| `list_databases` | **Directory Discovery**<br>Lists all SQLite database files (`.db`, `.sqlite`, `.sqlite3`) in the directory tree. | `directory` *(optional)*: Directory to scan. | List of resolved database paths and file sizes. |
+| `schema` | **Non-Blocking Schema Overview**<br>Table listing, column types, foreign keys, and estimated row counts via B-tree leaf inspection ($O(\log N)$) without full table scans. | `db` *(optional)*: Database file path. | Markdown table schema overview. (Deterministic prefix >97%). |
+| `query` | **SQL Execution**<br>Executes arbitrary SQL queries with parameter binding, VDBE opcode watchdog guardrails, and output truncation. | `sql`: SQL statement.<br>`params` *(optional)*: List, dict, or JSON string.<br>`format` *(optional)*: `table`, `vertical`, `json`.<br>`readonly` *(optional)*: Enforce read-only per query. | Markdown table, vertical record view, or JSON (capped at 24KB UTF-8). |
+| `table_info` | **Deep Table Inspection**<br>Detailed table metadata: columns, data types, nullability, defaults, indexes, triggers, DDL SQL, and estimated rows. | `table`: Target table or view name.<br>`db` *(optional)*: Database file path. | Detailed Markdown table specification. |
+| `explain` | **Query Plan Analysis**<br>Analyzes query execution plans and index utilization via `EXPLAIN QUERY PLAN`. | `sql`: SQL statement.<br>`params` *(optional)*: List, dict, or JSON string.<br>`db` *(optional)*: Database file path. | Tree view of SQLite VDBE query plan. |
+| `list_databases` | **Directory Discovery**<br>Lists all SQLite database files (`.db`, `.sqlite`, `.sqlite3`) within a directory tree. | `directory` *(optional)*: Directory to scan. | List of resolved database paths and file sizes. |
 
 ---
 
@@ -288,30 +298,30 @@ args = ["fastmcp-sqlite", "--db", "/absolute/path/to/database.db", "--allow-writ
 
 ### Empirical Benchmark Comparison
 
-Tested against the standard Node.js implementation (`mcp-sqlite-server` using `better-sqlite3`) on a 400MB database with 4.57 million rows (`tracker.db`) and a wide 39-column schema (`aegis.db`):
+Measured on a 400MB database with 4.57 million rows (`tracker.db`) and a wide 39-column schema (`aegis.db`):
 
-| Benchmark Metric | fastmcp-sqlite (Python / FastMCP) | Node.js MCP (better-sqlite3) | Advantage | Root Cause & Technical Mechanics |
+| Benchmark Metric | fastmcp-sqlite (Python / FastMCP) | Node.js MCP (better-sqlite3) | Comparison | Technical Mechanics & Root Cause |
 |---|---|---|:---:|---|
-| **CLI Cold-Start Latency** | **6.8 ms - 13.1 ms** (PEP 562 lazy imports) | 1,320.0 ms (Node runtime + addon init) | **101x - 193x faster** | Defers heavy SDK initialization until tool execution via dynamic attribute loading. |
-| **Prompt Prefix Invariance** | **97.01% - 98.92% prefix invariant** | 0% (Header timestamps bust cache) | **Full Cache Hit** | Dynamic metrics relocated strictly to footers, keeping schema definitions byte-invariant. |
-| **Schema Discovery Time** | **0.8 ms** (Non-blocking B-tree leaf probe) | 482.0 ms (Full scan `SELECT COUNT(*)`) | **602x faster** | Probes `sqlite_stat1` and `MAX(_rowid_)` in $O(\log N)$ time, eliminating disk locks. |
-| **Runaway CTE Abort Time** | **3.6 ms** (Opcode instruction watchdog) | Unresponsive / Process Hang | **Instant Abort** | SQLite VDBE progress handler catches runaway loops without CPU freezes. |
-| **Token Cost (100-Row Output)** | **1,814 tokens** (Compact Markdown Table) | 4,024 tokens (JSON Object Array) | **-54.9% tokens** | Eliminates repeated JSON keys, brackets, and redundant whitespace. |
-| **Token Cost (Wide 39-Col Schema)** | **2,120 tokens** (Vertical Record View) | 7,850 tokens (Standard JSON dump) | **-73.0% tokens** | Compact bulleted blocks formatted per record avoid table wrapping degradation. |
-| **RAM Footprint (RSS)** | **18 MB** (Zero binary addon overhead) | 85 MB (V8 runtime + native addon) | **-78.8% memory** | Standard library `sqlite3` without V8 engine memory footprint. |
-| **Extension Load Security** | **Locked post-initialization** | Unrestricted native runtime | **RCE Immune** | Disables `enable_load_extension` in `finally` blocks after startup loading. |
-| **Zero-Config Toolchain** | **Pure Python stdlib `sqlite3`** | Requires MSVC / `node-gyp` C++ compilers | **Zero Friction** | 1-click install on any platform without native build dependencies. |
+| **CLI Cold-Start Latency** | **6.8 ms – 13.1 ms** (PEP 562 lazy imports) | ~1,320.0 ms (Node runtime + addon init) | **~100x faster startup** | Defers heavy SDK submodules until execution via module-level `__getattr__` loading. |
+| **Schema Prefix Invariance** | **>97% prefix invariant** | 0% (Header timestamps bust cache) | **High Cache Retention** | Relocates variable execution timers strictly to output footers, keeping schema definitions byte-invariant. |
+| **Schema Discovery Latency** | **0.8 ms** (B-tree leaf probe) | 482.0 ms (Full scan `SELECT COUNT(*)`) | **Non-blocking scan** | Probes `sqlite_stat1` and reads the rightmost leaf page via `MAX(_rowid_)`, avoiding table scans. |
+| **Runaway Query Interruption** | **3.6 ms** (VDBE progress opcode limit) | Unresponsive / Process Timeout | **Deterministic Abort** | SQLite VDBE progress handler interrupts execution when reaching 1,000,000 VM opcodes. |
+| **Token Cost (100-Row Output)** | **1,814 tokens** (Compact Markdown Table) | 4,024 tokens (JSON Object Array) | **-54.9% tokens** | Markdown tables declare column headers once ($O(K) + O(N)$) instead of repeating keys per row ($O(N \cdot K)$). |
+| **Token Cost (Wide 39-Col Schema)** | **2,120 tokens** (Vertical Record View) | 7,850 tokens (Standard JSON dump) | **-73.0% tokens** | Formats wide records as individual bulleted blocks to prevent wrapping degradation. |
+| **Process Memory (RSS)** | **~18 MB** (CPython standard library) | ~85 MB (V8 runtime + native addon) | **-78.8% memory** | Standard library `sqlite3` operates without the baseline memory footprint of a JavaScript runtime. |
+| **Extension Sandbox Security** | **Post-startup lockdown** | Unrestricted native runtime | **Sandboxed SQL Surface** | Calls `conn.enable_load_extension(False)` in `finally` blocks immediately after startup module loading. |
+| **Installation Requirements** | **Pure Python standard library `sqlite3`** | Requires MSVC / `node-gyp` C++ toolchain | **Zero Build Toolchain** | Pure-Python distribution running on any platform without native compilation steps. |
 
 ---
 
 ### Prompt Caching Optimization
 
-Most MCP servers output dynamic execution timers or timestamps in the header of their schema responses. Because modern LLM prompt caching mechanisms (Anthropic Claude Prompt Caching, OpenAI Prefix Caching) match exact token prefixes from the start of the message, variable header lines invalidate cache entries on every invocation.
+Many MCP servers output dynamic execution timers or timestamps in the header of their schema responses. Because modern LLM prompt caching mechanisms (Anthropic Claude Prompt Caching, OpenAI Prefix Caching) match exact token prefixes from the beginning of the message, variable header lines invalidate cache entries on successive invocations.
 
-`fastmcp-sqlite` relocates all dynamic timing measurements to the footer:
-- **Prefix Invariance**: **97.01% - 98.92%** deterministic prefix stability across successive calls.
-- **Prompt Cache Retention**: Maximizes KV-cache reuse by keeping 100% of schema table and column definitions byte-invariant.
-- **Cost & Latency Reduction**: Eliminates redundant prefill compute, reducing time-to-first-token (TTFT) by up to **3.4x** for agent tool loops.
+`fastmcp-sqlite` relocates dynamic timing measurements to the footer:
+- **Prefix Stability**: **>97%** deterministic prefix stability across successive schema discovery calls.
+- **Cache Retention**: Maximizes KV-cache reuse by keeping 100% of schema table and column definitions byte-invariant.
+- **Latency & Cost Efficiency**: For prompts exceeding the model caching threshold (e.g., 1,024 tokens on Claude 3.5/3.7 Sonnet), cached prefix matches reduce time-to-first-token (TTFT) and input token billing.
 
 ---
 
@@ -334,13 +344,13 @@ Community Node  [█████████████████████
 
 #### Financial Impact across Agent Workflows:
 - **Claude 3.5 / 3.7 Sonnet ($3.00 / 1M prompt tokens):** Saving 2,210 tokens per query across 50 queries/session yields **$0.33 saved per session** (~$9.90/month per active developer agent) purely from output serialization compaction.
-- **Prompt Caching Savings (90% discount on cache hits):** Maintaining >97% prefix invariance drops schema prefill costs from $0.030 to $0.003 per turn.
+- **Prompt Caching Savings (90% discount on cache hits):** Maintaining >97% prefix invariance drops schema prefill costs from $0.030 to $0.003 per turn on cache hits.
 
 ---
 
 ### Runaway Query Watchdog
 
-Infinite recursive CTEs or accidental Cartesian product joins are interrupted within **3.6 ms**:
+Accidental infinite recursive CTEs or Cartesian product joins are interrupted within milliseconds via SQLite's VDBE bytecode instruction limit:
 
 ```sql
 WITH RECURSIVE loop(n) AS (
@@ -350,23 +360,22 @@ SELECT * FROM loop;
 ```
 
 ```text
-OperationalError: Query execution aborted by watchdog: exceeded 1000000 SQLite VM opcodes.
+OperationalError: Query execution aborted by watchdog: exceeded 1,000,000 opcodes.
 ```
 
 ---
 
 ### Fuzzy Schema Typo Diagnostics & Self-Healing
 
-When an agent misspells a table or column name, `fastmcp-sqlite` analyzes the database catalog using Python's `difflib` and returns intelligent suggestions directly in the error response, resolving errors in Turn 2 without redundant exploratory queries:
+When an agent misspells a table or column name, `fastmcp-sqlite` analyzes the catalog using Python's standard `difflib` and returns targeted correction hints directly in the error response, enabling Turn-2 error resolution without redundant exploratory queries:
 
 ```sql
-SELECT user_nam, emal FROM usrs;
+SELECT user_nam, email FROM users;
 ```
 
 ```text
-SQLite OperationalError: no such table: usrs
-  💡 Suggestion: Table 'usrs' does not exist. Did you mean: `users`?
-  💡 Suggestion: Column 'emal' does not exist. Did you mean: `email` (in table `users`)?
+SQLite OperationalError: no such column: user_nam
+  💡 Suggestion: Column 'user_nam' does not exist. Did you mean: `username`?
 ```
 
 ---
@@ -388,7 +397,7 @@ flowchart TD
         JSONRPC["Stdio JSON-RPC Dispatcher (UTF-8 Windows Safe)"]
         
         subgraph SafetyGuards["Runtime Safety and Watchdog Layer"]
-            WD["Opcode Watchdog (1M Cap, 3.6ms Abort)"]
+            WD["Opcode Watchdog (1M Instruction Limit)"]
             TX["DML RETURNING (ACID Auto-Commit)"]
             DZ["Fuzzy Typo Matcher (difflib Pattern Match)"]
             EX["Extension Security (Dynamic Load Lockdown)"]
@@ -401,9 +410,9 @@ flowchart TD
         end
         
         subgraph Discovery["Non-Blocking Schema Discovery"]
-            P1["MAX(_rowid_) B-Tree Leaf Probe"]
+            P1["MAX(_rowid_) B-Tree Leaf Probe (O(log N))"]
             P2["sqlite_stat1 Fast Path"]
-            P3["Dynamic Shadow Filter (FTS3/4/5)"]
+            P3["Dynamic Shadow Filter (FTS3/4/5, R*Tree)"]
         end
     end
 
@@ -428,28 +437,29 @@ flowchart TD
     class DB storeStyle;
 ```
 
-### Connection Hygiene and PRAGMA Settings
-Every database connection is immediately configured with production-grade defaults:
-- `PRAGMA busy_timeout = 5000;` (Graceful lock contention resolution)
-- `PRAGMA journal_mode = WAL;` (Concurrent readers alongside active writers)
-- `PRAGMA synchronous = NORMAL;` (Safe, fast disk I/O under WAL mode)
-- `PRAGMA mmap_size = 268435456;` (256MB memory-mapped I/O)
-- `PRAGMA cache_size = -64000;` (64MB page cache allocation)
-- `PRAGMA temp_store = MEMORY;` (In-memory temporary tables)
-- `PRAGMA foreign_keys = ON;` (Strict relational integrity enforcement)
+### Connection Hygiene and PRAGMA Configuration
+Every database connection is initialized with tuned concurrency and performance settings:
+- `PRAGMA busy_timeout = 5000;` (Waits up to 5,000ms to resolve lock contention before raising `SQLITE_BUSY`)
+- `PRAGMA journal_mode = WAL;` (Enables concurrent readers alongside an active writer; gracefully handled on read-only mounts)
+- `PRAGMA synchronous = NORMAL;` (Provides safe, low-latency disk I/O under WAL mode)
+- `PRAGMA mmap_size = 268435456;` (Maps up to 256MB into virtual memory for zero-copy reads)
+- `PRAGMA cache_size = -64000;` (Allocates approximately 64MB of RAM for the page cache)
+- `PRAGMA temp_store = MEMORY;` (Backs temporary tables and indices with memory instead of disk)
+- `PRAGMA foreign_keys = ON;` (Enforces relational foreign key constraint validation)
+- `PRAGMA query_only = ON;` (Enforces read-only safety at the connection level when `--allow-write` is omitted)
 
 ---
 
 ## When should you NOT use fastmcp-sqlite?
 
-We believe in radical engineering honesty. `fastmcp-sqlite` is purpose-built for local/embedded SQLite databases in AI coding agent workflows. You should **NOT** use `fastmcp-sqlite` if your project requires:
+We believe in engineering clarity. `fastmcp-sqlite` is purpose-built for local and embedded SQLite database interactions in AI agent workflows. You should **NOT** use `fastmcp-sqlite` if your workload requires:
 
 | Scenario / Requirement | Why fastmcp-sqlite is NOT suitable | Recommended Alternative |
 |---|---|---|
-| **Massive Multi-Node OLTP Clusters** | SQLite uses single-writer locking. It is not designed for distributed, multi-master write workloads. | PostgreSQL with `pgvector` or Citus |
-| **Distributed Edge Syncing** | `fastmcp-sqlite` does not implement remote replication protocols (e.g. WebSocket WAL streaming). | Turso (`libsql`) or LiteFS |
+| **Multi-Node OLTP Clusters** | SQLite uses single-writer file locking and is not designed for distributed, multi-master write topologies. | PostgreSQL with `pgvector` or Citus |
+| **Distributed Edge Replication** | `fastmcp-sqlite` does not implement remote consensus or WAL replication protocols. | Turso (`libsql`) or LiteFS |
 | **Petabyte-Scale OLAP Analytics** | Row-oriented SQLite B-Trees are not optimized for columnar aggregations across billions of records. | DuckDB (`duckdb-mcp`) or ClickHouse |
-| **Direct Network Socket Protocol** | `fastmcp-sqlite` communicates over standard IO JSON-RPC with local agent runtimes, not unauthenticated TCP sockets. | SQLite with gRPC / REST gateway |
+| **Direct Unauthenticated Sockets** | `fastmcp-sqlite` communicates over standard I/O JSON-RPC with local agent runtimes, not public TCP sockets. | SQLite with gRPC / authenticated REST gateway |
 
 ---
 
@@ -458,10 +468,14 @@ We believe in radical engineering honesty. `fastmcp-sqlite` is purpose-built for
 When interacting with `fastmcp-sqlite`, follow this optimal workflow:
 
 1. **Discover schema**: Call `schema` first to inspect tables, row estimates, and foreign keys in sub-millisecond time.
-2. **Inspect wide tables**: Use `table_info(table="name")` to inspect specific columns and types before generating complex SQL.
+2. **Inspect wide tables**: Use `table_info(table="name")` to inspect specific columns and constraints before generating complex SQL.
 3. **Execute queries**: Use `query(sql="SELECT ...")`. For wide tables (>10 columns), set `format="vertical"` for compact readability.
 4. **Optimize query plans**: Run `explain(sql="SELECT ...")` to verify index coverage.
 5. **Execute safe writes**: Use parameter binding (`params=[...]` or `params={"key": "val"}`) for insertions and updates with `RETURNING` clauses.
+
+> [!IMPORTANT]
+> **Security Boundaries of Parameter Binding:**  
+> SQLite parameter binding (`params=[...]` or `params={"key": "val"}`) safely escapes **value literals** in `WHERE`, `VALUES`, and `SET` clauses. Parameter placeholders **cannot** be used for SQL identifiers (table names, column names, or clauses). When generating SQL statements containing dynamic table or column identifiers, always validate identifiers against known schema definitions to prevent SQL injection.
 
 ---
 

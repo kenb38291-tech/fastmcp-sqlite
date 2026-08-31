@@ -75,6 +75,7 @@ def create_server(
         db: str = "",
         readonly: bool = True,
         format: str = "table",
+        cell_max_chars: int = 200,
     ) -> str:
         """Execute a SQL query with token-efficient formatting and safety watchdog."""
         return engine.execute_query(
@@ -83,6 +84,30 @@ def create_server(
             db=db if db else None,
             readonly=readonly,
             format=format,
+            cell_max_chars=cell_max_chars,
+        )
+
+    @mcp.tool(
+        name="export_query",
+        description=(
+            "Execute a SQL query and stream results directly to a local CSV or JSONL file on disk. "
+            "Zero token consumption, constant O(1) memory usage, ideal for large query exports."
+        ),
+    )
+    def export_query(
+        sql: str,
+        target_file: str,
+        format: str = "csv",
+        params: Optional[Union[List[Any], Dict[str, Any], str]] = None,
+        db: str = "",
+    ) -> str:
+        """Export query results directly to CSV or JSONL file on disk."""
+        return engine.export_query(
+            sql,
+            target_file=target_file,
+            format=format,
+            params=params,
+            db=db if db else None,
         )
 
     @mcp.tool(

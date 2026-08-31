@@ -75,7 +75,8 @@ def get_fuzzy_schema_hint(
             col_map: Dict[str, str] = {}
             for t in candidate_tables:
                 try:
-                    cursor.execute(f'PRAGMA table_info("{t}")')
+                    safe_t = t.replace('"', '""')
+                    cursor.execute(f'PRAGMA table_info("{safe_t}")')
                     for c in cursor.fetchall():
                         col_map[c[1]] = t  # c[1] is column name in PRAGMA table_info
                 except Exception:

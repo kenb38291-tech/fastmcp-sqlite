@@ -6,9 +6,10 @@ This document defines the architectural invariants, development workflows, test 
 
 fastmcp-sqlite is a Model Context Protocol (MCP) server for SQLite databases, written in Python using standard library `sqlite3` and the official `mcp` SDK. It has zero external database dependencies and requires no native C++ compiler toolchain.
 
-The server exposes five tools over standard IO JSON-RPC:
+The server exposes six tools over standard IO JSON-RPC:
 - `schema`: O(1) database schema overview with row counts, table definitions, foreign keys, and indexes.
 - `query`: SQL statement execution with parameter binding, watchdog protection, cell truncation, payload guards, and multiple serialization formats.
+- `export_query`: Stream query results directly to a local CSV or JSONL file with zero context token consumption and O(1) memory.
 - `table_info`: Detailed schema inspection for a single table or view, including column types, constraints, foreign keys, triggers, and DDL SQL.
 - `explain`: Query plan analysis using SQLite's EXPLAIN QUERY PLAN.
 - `list_databases`: Directory discovery of SQLite database files (.db, .sqlite, .sqlite3).
