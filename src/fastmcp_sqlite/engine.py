@@ -93,6 +93,11 @@ def _readonly_authorizer(
     trigger_name: Optional[str],
 ) -> int:
     """SQLite C-Core Authorizer callback to enforce strict sandbox read-only AST constraints."""
+    # Strictly forbid attaching or detaching external databases (anti-exfiltration / sandbox boundary)
+    if action_code in (sqlite3.SQLITE_ATTACH, sqlite3.SQLITE_DETACH):
+        return sqlite3.SQLITE_DENY
+
+    # Forbid DML write mutations on standard user tables
     if action_code in (
         sqlite3.SQLITE_INSERT,
         sqlite3.SQLITE_UPDATE,
@@ -102,34 +107,19 @@ def _readonly_authorizer(
             return sqlite3.SQLITE_OK
         return sqlite3.SQLITE_DENY
 
-    deny_actions = {
-        sqlite3.SQLITE_ATTACH,
-        sqlite3.SQLITE_DETACH,
-        sqlite3.SQLITE_CREATE_TABLE,
+    # Forbid destructive DDL schema modifications
+    deny_ddl_mutations = {
         sqlite3.SQLITE_DROP_TABLE,
         sqlite3.SQLITE_ALTER_TABLE,
-        sqlite3.SQLITE_CREATE_INDEX,
         sqlite3.SQLITE_DROP_INDEX,
-        sqlite3.SQLITE_CREATE_VIEW,
         sqlite3.SQLITE_DROP_VIEW,
-        sqlite3.SQLITE_CREATE_TRIGGER,
         sqlite3.SQLITE_DROP_TRIGGER,
-        sqlite3.SQLITE_CREATE_VTABLE,
         sqlite3.SQLITE_DROP_VTABLE,
-        sqlite3.SQLITE_CREATE_TEMP_TABLE,
-        sqlite3.SQLITE_DROP_TEMP_TABLE,
-        sqlite3.SQLITE_CREATE_TEMP_INDEX,
-        sqlite3.SQLITE_DROP_TEMP_INDEX,
-        sqlite3.SQLITE_CREATE_TEMP_VIEW,
-        sqlite3.SQLITE_DROP_TEMP_VIEW,
-        sqlite3.SQLITE_CREATE_TEMP_TRIGGER,
-        sqlite3.SQLITE_DROP_TEMP_TRIGGER,
-        sqlite3.SQLITE_SAVEPOINT,
-        sqlite3.SQLITE_REINDEX,
     }
-    if action_code in deny_actions:
+    if action_code in deny_ddl_mutations:
         return sqlite3.SQLITE_DENY
 
+    # Validate PRAGMAs: allow safe introspection and standard read-only query settings
     if action_code == sqlite3.SQLITE_PRAGMA:
         pname = (arg1 or "").lower()
         if pname in READONLY_SAFE_PRAGMAS:
