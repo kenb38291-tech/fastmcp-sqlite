@@ -11,7 +11,8 @@
   "license": "MIT",
   "homepage": "https://github.com/kenb38291-tech/fastmcp-sqlite",
   "server": {
-    "type": "command",
+    "type": "python",
+    "entry_point": "fastmcp_sqlite.cli:main",
     "mcp_config": {
       "command": "uvx",
       "args": ["fastmcp-sqlite"],

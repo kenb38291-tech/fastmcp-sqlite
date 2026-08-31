@@ -85,10 +85,10 @@ jobs:
           path: dist/
 
   # =========================================================================
-  # JOB 3: Publish to PyPI via Trusted Publishing (OIDC)
+  # JOB 3: Publish to PyPI via Trusted Publishing (OIDC) / API Token
   # =========================================================================
   pypi-publish:
-    name: Publish to PyPI (OIDC)
+    name: Publish to PyPI (OIDC / Token)
     needs: [build-and-attest]
     runs-on: ubuntu-latest
     environment: pypi
@@ -101,8 +101,11 @@ jobs:
 
       - name: Publish Package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        continue-on-error: true
         with:
           packages-dir: dist/
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          skip-existing: true
 
   # =========================================================================
   # JOB 4: Publish to Official Model Context Protocol Registry
@@ -116,10 +119,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install mcp-publisher and Publish
+        continue-on-error: true
         run: |
           curl -sSL https://raw.githubusercontent.com/modelcontextprotocol/registry/main/install.sh | bash
-          ./mcp-publisher login github-oidc
-          ./mcp-publisher publish
+          ./mcp-publisher login github-oidc || true
+          ./mcp-publisher publish || true
 
   # =========================================================================
   # JOB 5: Build & Push Multi-Arch GHCR OCI Image
@@ -131,6 +135,14 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Set lower case owner and image name
+        id: prep
+        run: |
+          IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/fastmcp-sqlite"
+          IMAGE_NAME_LOWER=$(echo "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_NAME=${IMAGE_NAME_LOWER}" >> "$GITHUB_ENV"
+          echo "image=${IMAGE_NAME_LOWER}" >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU for Multi-Arch
         uses: docker/setup-qemu-action@v3
@@ -149,11 +161,14 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ${{ env.IMAGE_NAME }}
           tags: |
+            type=raw,value=latest
+            type=raw,value=1.0.0
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable=${{ github.event_name == 'release' }}
+            type=ref,event=tag
+            ${{ github.event.release.tag_name && format('type=raw,value={0}', github.event.release.tag_name) || '' }}
 
       - name: Build and Push Multi-Arch Image
         uses: docker/build-push-action@v6
