@@ -434,7 +434,7 @@ class SQLiteEngine:
                         cols = []
                 col_defs = []
                 pk_cols = []
-                if not cols and item.get("sql") and "USING " in item["sql"].upper():
+                if not cols and item["sql"] and "USING " in item["sql"].upper():
                     match = re.search(r"USING\s+\w+\s*\((.*)\)", item["sql"], re.IGNORECASE | re.DOTALL)
                     if match:
                         raw_cols = [c.strip() for c in match.group(1).split(",") if c.strip()]
@@ -574,7 +574,7 @@ class SQLiteEngine:
                 except sqlite3.OperationalError:
                     cols = []
             col_rows = []
-            if not cols and tbl.get("sql") and "USING " in tbl["sql"].upper():
+            if not cols and tbl["sql"] and "USING " in tbl["sql"].upper():
                 match = re.search(r"USING\s+\w+\s*\((.*)\)", tbl["sql"], re.IGNORECASE | re.DOTALL)
                 if match:
                     raw_cols = [c.strip() for c in match.group(1).split(",") if c.strip()]
